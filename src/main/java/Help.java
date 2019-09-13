@@ -18,18 +18,25 @@ public class Help {
                 "\n\tget\texecutes a HTTP GET request and prints the response." +
                 "\n\tpost\texecutes a HTTP POST request and prints the response." +
                 "\n\thelp\tprints this screen." +
-                "\n\nUse \"httpc help [command]\" for more information about a command";
+                "\n\nUse \"httpc help [command]\" for more information about a command.";
     }
 
     private String getHelpMessage(){
-        //Using Optionparser to print description of options
-        OptionParser getParser = (new GETMethod()).getGETparser();
-        return "";
+        //Can be replace with parser + handler, but (for now) this works fine
+        return "\nUsage: httpc get [-v] [-h key:value] URL" +
+                "\n\nGet executes a HTTP GET request for a given URL." +
+                "\n\n\t-v\tPrints the details of the response such as protocol, status, and headers." +
+                "\n\t-h key:value\tAssociates headers to HTTP Request with the format 'key:value'.";
     }
 
     private String postHelpMessage(){
-        //Using Optionparser to print description of options
-        OptionParser getParser = (new POSTMethod()).getPOSTparser();
-        return "";
+        //Can be replace with parser + handler, but (for now) this works fine
+        return "\nUsage: httpc post [-v] [-h key:value] [-d inline-data] [-f file] URL" +
+                "\n\nPost executes a HTTP POST request for a given URL with inline data or from file." +
+                "\n\n\t-v\tPrints the details of the response such as protocol, status, and headers." +
+                "\n\t-h key:value\tAssociates headers to HTTP Request with the format 'key:value'." +
+                "\n\t-d string\tAssociates an inline data to the body HTTP POST request." +
+                "\n\t-f file\tAssociates the content of a file to the body HTTP POST request" +
+                "\n\nEither [-d] or [-f] can be used, but not both";
     }
 }
