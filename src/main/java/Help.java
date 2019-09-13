@@ -1,14 +1,22 @@
-import joptsimple.OptionParser;
-
 public class Help {
 
     private String[] arguments;
 
     public Help(String[] arguments){
         this.arguments = arguments;
+        parseArguments(arguments);
     }
 
-    private void parseArguments(){
+    private void parseArguments(String[] arguments){
+        if(arguments.length == 1 && arguments[0].equals("help")){
+            System.out.println(generalHelpMessage());
+        }else if(arguments.length == 2 && arguments[0].equals("help") && arguments[1].equals("get")){
+            System.out.println(getHelpMessage());
+        }else if(arguments.length == 2 && arguments[0].equals("help") && arguments[1].equals("post")){
+            System.out.println(postHelpMessage());
+        }else{
+            System.out.println("Invalid command.");
+        }
     }
 
     private String generalHelpMessage(){
