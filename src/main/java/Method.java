@@ -2,15 +2,15 @@ public abstract class Method {
 
     private String[] args;
 
-    public Method(){
+    public Method() {
         this.args = null;
     }
 
-    public Method(String[] args){
+    public Method(String[] args) {
         this.args = args;
     }
 
-    public String[] getArgs(){
+    public String[] getArgs() {
         return args;
     }
 }
