@@ -4,7 +4,7 @@ public class Help {
 
     public Help(String[] arguments){
         this.arguments = arguments;
-        parseArguments(arguments);
+        parseArguments(this.arguments);
     }
 
     private void parseArguments(String[] arguments){
