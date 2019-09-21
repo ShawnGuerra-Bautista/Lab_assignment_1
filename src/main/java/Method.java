@@ -9,9 +9,10 @@ public class Method {
     public Method() {
     }
 
-    public Method(String request, String url) {
-        this.request = request;
-        this.url = url;
+    public Method(String[] args) {
+        request = args[0];
+        url = args[args.length-1];
+        callHeader(args);
     }
 
     public String getRequest() {
@@ -24,6 +25,10 @@ public class Method {
 
     public String getHTTP(){
         return HTTP;
+    }
+
+    public void callHeader(String[] args) {
+        new Header(args);
     }
 
     public OptionParser getPOSTparser() {
