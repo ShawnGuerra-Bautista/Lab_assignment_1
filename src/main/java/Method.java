@@ -2,19 +2,27 @@ import joptsimple.OptionParser;
 
 public abstract class Method {
 
-    private String[] args;
+    private String request;
+    private String url;
+    private final String HTTP = "HTTP/1.0";
 
     public Method() {
-        this.args = null;
     }
 
-    public Method(String[] args) {
-        this.args = args;
+    public Method(String request, String url) {
+        this.request = request;
+        this.url = url;
     }
 
-    public String[] getArgs() {
-        return args;
+    public String getRequest() {
+        return request;
     }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getHTTP(){ return HTTP; }
 
     public OptionParser getPOSTparser() {
         OptionParser parser = new OptionParser();
