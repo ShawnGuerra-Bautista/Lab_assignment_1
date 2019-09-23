@@ -1,7 +1,7 @@
 public class httpc {
 
     public static void main(String[] args) {
-        Library lib = new Library(args);
+        RequestHandler lib = new RequestHandler(args);
         lib.processArgs();
     }
 }

@@ -4,10 +4,9 @@ public class Help {
 
     public Help(String[] arguments) {
         this.arguments = arguments;
-        parseArguments(this.arguments);
     }
 
-    private void parseArguments(String[] arguments) {
+    public void executeHelp() {
         if(arguments.length == 1 && arguments[0].equals("help")) {
             System.out.println(generalHelpMessage());
         }else if(arguments.length == 2 && arguments[0].equals("help") && arguments[1].equals("get")) {
