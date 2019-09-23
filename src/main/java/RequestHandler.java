@@ -6,13 +6,14 @@ public class RequestHandler {
         this.args = args;
     }
 
-    public void processArgs(){
+    public void handle(){
         if (args[0].equals("help")) {
             Help help = new Help(args);
             help.executeHelp();
-        }else if(args[0].equals("get") || args[0].equals("post")) {
+        }else if(args[0].equals("get")) {
 
-            //new Method(args);
+        }else if(args[0].equals("post")) {
+
         }else {
             System.out.println("Invalid Command.");
         }

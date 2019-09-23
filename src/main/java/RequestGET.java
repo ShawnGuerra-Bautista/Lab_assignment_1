@@ -1,6 +1,23 @@
+/*
+        This request should only be responsible of
+            >Method
+            >Header (Content-length not mandatory)
+ */
+
 import joptsimple.OptionParser;
 
 public class RequestGET extends AbstractRequest{
+
+    private String[] args;
+
+    public RequestGET(String[] args){
+        this.args = args;
+    }
+
+    public void executeGETRequest(){
+
+    }
+
     public OptionParser getGETparser() {
         OptionParser parser = new OptionParser();
         parser.nonOptions("Method GET").ofType(String.class);

@@ -1,6 +1,27 @@
+/*
+        This request should be responsible of
+            >Method
+            >Header (Content-length MANDATORY)
+            >Body
+                >-d option
+                >-f option
+                >Could only support one of them only, not both or neither.
+ */
+
 import joptsimple.OptionParser;
 
 public class RequestPOST extends AbstractRequest{
+
+    private String[] args;
+
+    public RequestPOST(String[] args){
+        this.args = args;
+    }
+
+    public void executePOSTRequest(){
+
+    }
+
     public OptionParser getPOSTparser() {
         OptionParser parser = new OptionParser();
         parser.accepts("v", "Prints the detail of the response such as protocol, status, and headers.");
