@@ -1,6 +1,6 @@
 import joptsimple.OptionParser;
 
-public class Method {
+public class Method extends AbstractParser{
 
     private String request;
     private String url;

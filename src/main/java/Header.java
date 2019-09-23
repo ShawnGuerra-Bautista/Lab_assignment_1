@@ -1,4 +1,4 @@
-public class Header {
+public class Header extends AbstractParser{
 
     public Header(){
 
