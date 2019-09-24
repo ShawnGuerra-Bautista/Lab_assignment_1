@@ -10,15 +10,15 @@
 
 import joptsimple.OptionParser;
 
-public class RequestPOST extends AbstractRequest{
+public class POSTRequest extends Request {
 
     private String[] args;
 
-    public RequestPOST(String[] args){
-        this.args = args;
+    public POSTRequest(String[] args){
+        super(args);
     }
 
-    public void executePOSTRequest(){
+    public void execute(){
 
     }
 

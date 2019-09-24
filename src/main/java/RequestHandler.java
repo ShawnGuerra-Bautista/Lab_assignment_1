@@ -11,9 +11,11 @@ public class RequestHandler {
             Help help = new Help(args);
             help.executeHelp();
         }else if(args[0].equals("get")) {
-
+            GETRequest getRequest = new GETRequest(args);
+            getRequest.execute();
         }else if(args[0].equals("post")) {
-
+            POSTRequest postRequest = new POSTRequest(args);
+            postRequest.execute();
         }else {
             System.out.println("Invalid Command.");
         }

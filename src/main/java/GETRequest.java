@@ -6,15 +6,13 @@
 
 import joptsimple.OptionParser;
 
-public class RequestGET extends AbstractRequest{
+public class GETRequest extends Request {
 
-    private String[] args;
-
-    public RequestGET(String[] args){
-        this.args = args;
+    public GETRequest(String[] args){
+        super(args);
     }
 
-    public void executeGETRequest(){
+    public void execute(){
 
     }
 
