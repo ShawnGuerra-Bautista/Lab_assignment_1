@@ -1,3 +1,9 @@
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+
+import java.io.File;
+import java.util.Map;
+
 //All requests (POST/GET) should support
 //      1. -o option
 //      2. -h option
@@ -10,13 +16,18 @@ public abstract class Request {
         this.args = args;
     }
 
-    private String[] headerOption(){
+    private Map<String, String> headerOption(){
+        //Should return a hashmap
         return null;
     }
     private boolean verboseOption(){
-        return false;
+        OptionParser parser = new OptionParser();
+        parser.accepts("v", "Prints the detail of the response such as protocol, status, and headers.");
+        OptionSet verboseOption = parser.parse(args);
+        return verboseOption.has("v");
     }
-    private boolean fileResponseOption(){
-        return false;
+    private File fileResponseOption(){
+        //Should return a File for FileOutputStream
+        return null;
     }
 }
