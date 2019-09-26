@@ -51,4 +51,12 @@ public abstract class Request {
         File fileResponse = new File((String)fileResponseOption.valueOf("o"));
         return fileResponse;
     }
+
+    public String[] getArgs() {
+        return args;
+    }
+
+    public int getArgsLength(){
+        return args.length;
+    }
 }

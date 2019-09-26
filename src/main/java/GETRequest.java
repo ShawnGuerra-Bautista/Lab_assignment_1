@@ -4,22 +4,39 @@
             >Header (Content-length not mandatory)
  */
 
-import joptsimple.OptionParser;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class GETRequest extends Request {
+
+    private String rawUrl;
 
     public GETRequest(String[] args){
         super(args);
     }
 
-    public void execute(){
+    public void execute() throws UnknownHostException {
+        String url = rawUrl.substring(rawUrl.indexOf("http://"), rawUrl.length()-1);
 
+        InetAddress inetAddress = null;
+        try {
+            inetAddress = InetAddress.getByName(url);
+        }catch(UnknownHostException e){
+            System.out.println(e);
+        }
+
+        Socket serviceSocket = null;
+        try {
+            serviceSocket = new Socket(inetAddress, 80);
+        }catch(IOException e){
+            System.out.println(e);
+        }
     }
 
-    public OptionParser getGETparser() {
-        OptionParser parser = new OptionParser();
-        parser.nonOptions("Method GET").ofType(String.class);
-        parser.nonOptions("URL").ofType(String.class);
-        return parser;
+    private String getURL() {
+        rawUrl = getArgs()[getArgsLength() - 1];
+        return rawUrl;
     }
 }
