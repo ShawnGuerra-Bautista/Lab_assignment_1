@@ -10,6 +10,10 @@
 
 import joptsimple.OptionParser;
 
+import java.io.*;
+import java.net.InetAddress;
+import java.net.Socket;
+
 public class POSTRequest extends Request {
 
     private String[] args;
@@ -19,7 +23,43 @@ public class POSTRequest extends Request {
     }
 
     public void execute(){
+        InetAddress inetAddress = null;
+        Socket serviceSocket = null;
 
+        try{
+            BufferedWriter requestWriter =  new BufferedWriter(new OutputStreamWriter(serviceSocket.getOutputStream(), "UTF-8"));
+            BufferedReader responseReader = new BufferedReader(new InputStreamReader(serviceSocket.getInputStream()));
+
+            sendRequest(requestWriter);
+            receiveResponse(responseReader);
+
+            requestWriter.close();
+            responseReader.close();
+        }catch(IOException e){
+            System.out.println(e);
+        }
+    }
+
+    private void sendRequest(BufferedWriter requestWriter) throws IOException {
+        //Create BufferedWriter
+        //Create a String and convert it into UTF-8 + getBytes
+            //Write Headers
+            //Write Body
+        //flush
+        requestWriter.flush();
+    }
+
+    private void receiveResponse(BufferedReader responseReader) throws IOException {
+        //Read response
+            //Check if verbose is demanded
+                //if
+    }
+
+    private String bodyOption() {
+        //parse the command to check whether it's a file or body
+        //read the file/body
+        //return the string
+        return null;
     }
 
     public OptionParser getPOSTparser() {
