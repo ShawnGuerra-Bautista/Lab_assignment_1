@@ -4,17 +4,16 @@
             >Header (Content-length not mandatory)
  */
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.URL;
 
 public class GETRequest extends Request {
 
     private String rawUrl;
+    private String host;
+    private int port;
 
     public GETRequest(String[] args){
         super(args);
@@ -22,29 +21,71 @@ public class GETRequest extends Request {
 
     public void execute() {
 
-
-        String url = rawUrl.substring(rawUrl.indexOf("http://"), rawUrl.length()-1);
+        getURL();
 
         InetAddress inetAddress = null;
         Socket serviceSocket = null;
 
         try {
-            inetAddress = InetAddress.getByName(url);
+            URL url = new URL(rawUrl);
+            host = url.getHost();
+            port = url.getDefaultPort();
+
+            inetAddress = InetAddress.getByName(host);
             serviceSocket = new Socket(inetAddress, 80);
 
-            PrintWriter requestWriter = new PrintWriter(serviceSocket.getOutputStream());
-            BufferedReader responseBuffer = new BufferedReader(
+            BufferedWriter requestWriter = new BufferedWriter(
+                    new OutputStreamWriter(serviceSocket.getOutputStream(), "UTF-8"));
+            BufferedReader responseReader = new BufferedReader(
                     new InputStreamReader(serviceSocket.getInputStream()));
 
-            // send HTTP request to web server
-            requestWriter.println("GET / HTTP/1.0");
-            requestWriter.println("Host: " + url + ":" + "80");
-            requestWriter.println("Connection: close");
-            requestWriter.println();
+            sendRequest(requestWriter, host, port);
+            receiveResponse(responseReader);
+
+
+
+
+            requestWriter.close();
+            responseReader.close();
 
         } catch(Exception e) {
             System.out.println(e);
         }
+    }
+
+    // send HTTP request to web server
+    public void sendRequest(BufferedWriter requestWriter, String host, int port) throws IOException {
+        // write header
+
+        String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36";
+
+        String request = "GET / HTTP/1.0\r\n" +
+                            "Host: " + host + ":" + port + "\r\n" +
+                            "User-Agent: " + userAgent + "\r\n" +
+                            "Connection: close\r\n" +
+                            "\r\n";
+
+
+
+        requestWriter.write(request);
+        requestWriter.flush();
+    }
+
+    public void receiveResponse(BufferedReader responseReader) throws IOException {
+        // read response
+            // verbose? -> if verbose(true), print everything; if false, print starting from curly bracket {
+        StringBuilder stringBuilder = new StringBuilder();
+        String data;
+
+        do {
+            data = responseReader.readLine();
+            stringBuilder.append(data + "\r\n");
+        }
+        while (data != null);
+
+        String response = stringBuilder.toString();
+
+        System.out.println(response);
     }
 
     private String getURL() {
