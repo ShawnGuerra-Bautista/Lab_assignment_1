@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
-
 //All requests (POST/GET) should support
 //      1. -o option
 //      2. -h option
@@ -21,13 +19,16 @@ public abstract class Request {
         this.args = args;
     }
 
-    private Map<String, String> headerOption(){
+
+    //Header options to implement (Content-Length; User-Agent; Date)
+    protected Map<String, String> headerOption() {
         OptionParser parser = new OptionParser();
         Map<String, String> headersMap = new HashMap<String, String>();
 
         OptionSpec<String> headerSpec = parser.accepts("h", "Associates headers to HTTP Request with the format 'key:value'")
                 .withRequiredArg()
                 .ofType(String.class);
+        parser.allowsUnrecognizedOptions();
         OptionSet headerOption = parser.parse(args);
         List<String> headerList = headerOption.valuesOf(headerSpec);
 
@@ -38,25 +39,31 @@ public abstract class Request {
 
         return headersMap;
     }
-    private boolean verboseOption(){
+
+    //Gets the verbose option
+    protected boolean verboseOption() {
         OptionParser parser = new OptionParser();
         parser.accepts("v", "Prints the detail of the response such as protocol, status, and headers.");
+        parser.allowsUnrecognizedOptions();
         OptionSet verboseOption = parser.parse(args);
         return verboseOption.has("v");
     }
-    private File fileResponseOption(){
+
+    //Returns Filename of the file with the output
+    protected File fileResponseOption() {
         OptionParser parser = new OptionParser();
         parser.accepts("o", "Prints the detail of the response in a file.").withRequiredArg().ofType(String.class);
+        parser.allowsUnrecognizedOptions();
         OptionSet fileResponseOption = parser.parse(args);
         File fileResponse = new File((String)fileResponseOption.valueOf("o"));
         return fileResponse;
     }
 
-    public String[] getArgs() {
+    protected String[] getArgs() {
         return args;
     }
 
-    public int getArgsLength(){
+    protected int getArgsLength(){
         return args.length;
     }
 }

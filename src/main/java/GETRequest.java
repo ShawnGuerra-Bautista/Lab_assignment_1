@@ -6,8 +6,10 @@
 
 import java.io.*;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Map;
 
 public class GETRequest extends Request {
 
@@ -17,12 +19,10 @@ public class GETRequest extends Request {
 
     public GETRequest(String[] args){
         super(args);
+        getURL();
     }
 
     public void execute() {
-
-        getURL();
-
         InetAddress inetAddress = null;
         Socket serviceSocket = null;
 
@@ -32,7 +32,7 @@ public class GETRequest extends Request {
             port = url.getDefaultPort();
 
             inetAddress = InetAddress.getByName(host);
-            serviceSocket = new Socket(inetAddress, 80);
+            serviceSocket = new Socket(inetAddress, port);
 
             BufferedWriter requestWriter = new BufferedWriter(
                     new OutputStreamWriter(serviceSocket.getOutputStream(), "UTF-8"));
@@ -42,54 +42,58 @@ public class GETRequest extends Request {
             sendRequest(requestWriter, host, port);
             receiveResponse(responseReader);
 
-
-
-
             requestWriter.close();
             responseReader.close();
 
-        } catch(Exception e) {
+        } catch(MalformedURLException e){
+            System.out.println(e);
+        } catch(IOException e) {
+            System.out.println(e);
+        } catch(Exception e){
             System.out.println(e);
         }
     }
 
-    // send HTTP request to web server
+    // Send HTTP request to web server
     public void sendRequest(BufferedWriter requestWriter, String host, int port) throws IOException {
-        // write header
-
-        String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36";
+        Map<String, String> headersMap = headerOption();
+        StringBuilder headers = new StringBuilder();
+        for(String key: headersMap.keySet()){
+            headers.append(key).append(": ").append(headersMap.get(key)).append("\r\n");
+        }
 
         String request = "GET / HTTP/1.0\r\n" +
                             "Host: " + host + ":" + port + "\r\n" +
-                            "User-Agent: " + userAgent + "\r\n" +
+                            headers +
                             "Connection: close\r\n" +
                             "\r\n";
-
-
-
         requestWriter.write(request);
         requestWriter.flush();
     }
 
+    //Receives the response from the server
     public void receiveResponse(BufferedReader responseReader) throws IOException {
-        // read response
-            // verbose? -> if verbose(true), print everything; if false, print starting from curly bracket {
-        StringBuilder stringBuilder = new StringBuilder();
-        String data;
+        boolean verboseOption = verboseOption();
 
-        do {
-            data = responseReader.readLine();
-            stringBuilder.append(data + "\r\n");
+        StringBuilder response = new StringBuilder();
+        String currentLine;
+
+        //If verbose, print everything
+        //Else, ignore the verbose until the body is reached, then print the body
+        if(verboseOption){
+            while ((currentLine = responseReader.readLine()) != null) {
+                response.append(currentLine).append("\n");
+            }
+        }else{
+            while (!(responseReader.readLine().equals("")));
+            while ((currentLine = responseReader.readLine()) != null) {
+                response.append(currentLine).append("\n");
+            }
         }
-        while (data != null);
-
-        String response = stringBuilder.toString();
-
-        System.out.println(response);
+        System.out.print(response);
     }
 
-    private String getURL() {
+    private void getURL() {
         rawUrl = getArgs()[getArgsLength() - 1];
-        return rawUrl;
     }
 }
