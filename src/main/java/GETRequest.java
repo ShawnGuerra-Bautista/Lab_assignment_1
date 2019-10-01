@@ -39,7 +39,7 @@ public class GETRequest extends Request {
             BufferedReader responseReader = new BufferedReader(
                     new InputStreamReader(serviceSocket.getInputStream()));
 
-            sendRequest(requestWriter, host, port);
+            sendRequest(requestWriter);
             receiveResponse(responseReader);
 
             requestWriter.close();
@@ -55,7 +55,7 @@ public class GETRequest extends Request {
     }
 
     // Send HTTP request to web server
-    public void sendRequest(BufferedWriter requestWriter, String host, int port) throws IOException {
+    public void sendRequest(BufferedWriter requestWriter) throws IOException {
         Map<String, String> headersMap = headerOption();
         StringBuilder headers = new StringBuilder();
         for(String key: headersMap.keySet()){
