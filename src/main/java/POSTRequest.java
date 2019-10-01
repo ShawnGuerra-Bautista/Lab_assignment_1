@@ -102,7 +102,7 @@ public class POSTRequest extends Request {
     }
 
     public String bodyOption() {
-        String body = "";
+        StringBuilder body = new StringBuilder();
         OptionParser parser = new OptionParser();
         OptionSpec<String> rawBodySpec = parser.accepts("d", "Associates an inline data to the body HTTP POST request.")
                 .requiredUnless("f")
@@ -117,10 +117,23 @@ public class POSTRequest extends Request {
         OptionSet bodyOption = parser.parse(args);
 
         if(bodyOption.has("d")) {
-            body = bodyOption.valueOf(rawBodySpec);
+            body = new StringBuilder(bodyOption.valueOf(rawBodySpec));
         }else if(bodyOption.has("f")){
-            String fileName = bodyOption.valueOf(fileBodySpec);
-            //Read the file...
+            try {
+                String fileName = bodyOption.valueOf(fileBodySpec);
+                File file = new File(fileName);
+                BufferedReader fileReader = new BufferedReader(new FileReader(file));
+                String currentLine;
+                while ((currentLine = fileReader.readLine()) != null) {
+                    body.append(currentLine);
+                }
+            }catch (FileNotFoundException e){
+                System.out.println(e);
+            }catch (IOException e){
+                System.out.println(e);
+            }catch (Exception e){
+                System.out.println(e);
+            }
         }
 
         return null;

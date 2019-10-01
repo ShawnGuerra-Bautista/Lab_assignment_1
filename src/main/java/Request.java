@@ -24,12 +24,12 @@ public abstract class Request {
     protected Map<String, String> headerOption() {
         OptionParser parser = new OptionParser();
         Map<String, String> headersMap = new HashMap<String, String>();
-
         OptionSpec<String> headerSpec = parser.accepts("h", "Associates headers to HTTP Request with the format 'key:value'")
                 .withRequiredArg()
                 .ofType(String.class);
         parser.allowsUnrecognizedOptions();
         OptionSet headerOption = parser.parse(args);
+
         List<String> headerList = headerOption.valuesOf(headerSpec);
 
         for(String rawHeader: headerList){
