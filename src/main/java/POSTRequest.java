@@ -112,6 +112,7 @@ public class POSTRequest extends Request {
         if(fileOutput != null){
             PrintWriter fileWriter = new PrintWriter(fileResponseOption());
             fileWriter.write(response.toString());
+            fileWriter.close();
         }else{
             System.out.print(response);
         }

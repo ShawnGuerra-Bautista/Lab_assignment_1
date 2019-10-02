@@ -60,7 +60,7 @@ public abstract class Request {
 
         File fileResponse = null;
         if(fileResponseOption.has("o")){
-            fileResponse = new File(fileResponseOption.valueOf(fileSpec));
+            fileResponse = new File(fileResponseOption.valueOf(fileSpec).replaceAll("[\"']", ""));
         }
         return fileResponse;
     }
