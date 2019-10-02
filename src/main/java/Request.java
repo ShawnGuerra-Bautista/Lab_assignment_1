@@ -52,13 +52,15 @@ public abstract class Request {
     //Returns Filename of the file with the output
     protected File fileResponseOption() {
         OptionParser parser = new OptionParser();
-        parser.accepts("o", "Prints the detail of the response in a file.").withRequiredArg().ofType(String.class);
+        OptionSpec<String> fileSpec = parser.accepts("o", "Prints the detail of the response in a file.")
+                .withRequiredArg()
+                .ofType(String.class);
         parser.allowsUnrecognizedOptions();
         OptionSet fileResponseOption = parser.parse(args);
 
         File fileResponse = null;
         if(fileResponseOption.has("o")){
-            fileResponse = new File((String)fileResponseOption.valueOf("o"));
+            fileResponse = new File(fileResponseOption.valueOf(fileSpec));
         }
         return fileResponse;
     }
