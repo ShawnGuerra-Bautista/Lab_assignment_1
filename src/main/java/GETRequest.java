@@ -14,6 +14,7 @@ import java.util.Map;
 public class GETRequest extends Request {
 
     private String rawUrl;
+    private URL url;
     private String host;
     private int port;
 
@@ -28,6 +29,7 @@ public class GETRequest extends Request {
 
         try {
             URL url = new URL(rawUrl);
+            this.url = url;
             host = url.getHost();
             port = url.getDefaultPort();
 
@@ -62,7 +64,7 @@ public class GETRequest extends Request {
             headers.append(key).append(": ").append(headersMap.get(key)).append("\r\n");
         }
 
-        String request = "GET / HTTP/1.0\r\n" +
+        String request = "GET " + url + " HTTP/1.0\r\n" +
                             "Host: " + host + ":" + port + "\r\n" +
                             headers +
                             "Connection: close\r\n" +
@@ -94,6 +96,6 @@ public class GETRequest extends Request {
     }
 
     private void getURL() {
-        rawUrl = getArgs()[getArgsLength() - 1];
+        rawUrl = getArgs()[getArgsLength() - 1].replaceAll("[\"']", "");
     }
 }

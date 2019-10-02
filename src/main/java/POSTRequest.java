@@ -21,13 +21,14 @@ import java.util.Map;
 
 public class POSTRequest extends Request {
 
-    private String[] args;
     private String rawUrl;
+    private URL url;
     private String host;
     private int port;
 
     public POSTRequest(String[] args){
         super(args);
+        getURL();
     }
 
     public void execute() {
@@ -36,6 +37,7 @@ public class POSTRequest extends Request {
 
         try {
             URL url = new URL(rawUrl);
+            this.url = url;
             host = url.getHost();
             port = url.getDefaultPort();
 
@@ -62,21 +64,27 @@ public class POSTRequest extends Request {
         }
     }
 
-    private void sendRequest(BufferedWriter requestWriter) throws IOException {
+    private void sendRequest(BufferedWriter requestWriter) throws IOException, Exception {
         Map<String, String> headersMap = headerOption();
         StringBuilder headers = new StringBuilder();
-        for(String key: headersMap.keySet()){
-            headers.append(key).append(": ").append(headersMap.get(key)).append("\r\n");
+
+        if(headersMap.containsKey("Content-Length")) {
+            for (String key : headersMap.keySet()) {
+                headers.append(key).append(": ").append(headersMap.get(key)).append("\r\n");
+            }
+        }else{
+            throw new Exception("Content-Length must be part of the header.");
         }
 
-        String requestHeader = "POST / HTTP/1.0\r\n" +
+        String requestHeader = "POST " + url + " HTTP/1.0\r\n" +
                 "Host: " + host + ":" + port + "\r\n" +
                 headers +
                 "Connection: close\r\n" +
                 "\r\n";
 
-        String requestBody = bodyOption() + "\r\n" + "\r\n";
+        String requestBody = bodyOption();
         requestWriter.write(requestHeader + requestBody);
+
         requestWriter.flush();
     }
 
@@ -101,20 +109,20 @@ public class POSTRequest extends Request {
         System.out.print(response);
     }
 
-    public String bodyOption() {
+    private String bodyOption() {
         StringBuilder body = new StringBuilder();
+
         OptionParser parser = new OptionParser();
         OptionSpec<String> rawBodySpec = parser.accepts("d", "Associates an inline data to the body HTTP POST request.")
-                .requiredUnless("f")
-                .availableUnless("f")
                 .withRequiredArg()
                 .ofType(String.class);
         OptionSpec<String> fileBodySpec = parser.accepts("f", "Associates the content of a file to the body HTTP post request.")
                 .requiredUnless("d")
                 .availableUnless("d")
                 .withRequiredArg()
-                .ofType(String.class);;
-        OptionSet bodyOption = parser.parse(args);
+                .ofType(String.class);
+        parser.allowsUnrecognizedOptions();
+        OptionSet bodyOption = parser.parse(getArgs());
 
         if(bodyOption.has("d")) {
             body = new StringBuilder(bodyOption.valueOf(rawBodySpec));
@@ -135,7 +143,9 @@ public class POSTRequest extends Request {
                 System.out.println(e);
             }
         }
-
-        return null;
+        return body.toString();
+    }
+    private void getURL() {
+        rawUrl = getArgs()[getArgsLength() - 1].replaceAll("[\"']", "");
     }
 }
