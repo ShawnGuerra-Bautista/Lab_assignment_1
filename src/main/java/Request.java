@@ -55,7 +55,11 @@ public abstract class Request {
         parser.accepts("o", "Prints the detail of the response in a file.").withRequiredArg().ofType(String.class);
         parser.allowsUnrecognizedOptions();
         OptionSet fileResponseOption = parser.parse(args);
-        File fileResponse = new File((String)fileResponseOption.valueOf("o"));
+
+        File fileResponse = null;
+        if(fileResponseOption.has("o")){
+            fileResponse = new File((String)fileResponseOption.valueOf("o"));
+        }
         return fileResponse;
     }
 

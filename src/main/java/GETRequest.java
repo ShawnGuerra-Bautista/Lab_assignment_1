@@ -64,8 +64,11 @@ public class GETRequest extends Request {
             headers.append(key).append(": ").append(headersMap.get(key)).append("\r\n");
         }
 
+        System.out.println(fileResponseOption());
+
         String request = "GET " + url + " HTTP/1.0\r\n" +
                             "Host: " + host + ":" + port + "\r\n" +
+                            "User-Agent: Mozilla/5.0 (X11; Linux x86_64)\r\n" +
                             headers +
                             "Connection: close\r\n" +
                             "\r\n";
