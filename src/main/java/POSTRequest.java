@@ -25,6 +25,8 @@ public class POSTRequest extends Request {
     private URL url;
     private String host;
     private int port;
+    private String status;
+    private String location;
 
     public POSTRequest(String[] args){
         super(args);
@@ -49,8 +51,18 @@ public class POSTRequest extends Request {
             BufferedReader responseReader = new BufferedReader(
                     new InputStreamReader(serviceSocket.getInputStream()));
 
-            sendRequest(requestWriter);
+            sendRequest(requestWriter, url.getPath());
             receiveResponse(responseReader);
+
+            while(isRedirectionNeeded()){
+                if(location != null){
+                    location = null;
+                    sendRequest(requestWriter, location);
+                    receiveResponse(responseReader);
+                }else{
+                    break;
+                }
+            }
 
             requestWriter.close();
             responseReader.close();
@@ -64,7 +76,7 @@ public class POSTRequest extends Request {
         }
     }
 
-    private void sendRequest(BufferedWriter requestWriter) throws IOException, Exception {
+    private void sendRequest(BufferedWriter requestWriter, String path) throws IOException, Exception {
         Map<String, String> headersMap = headerOption();
         StringBuilder headers = new StringBuilder();
 
@@ -76,7 +88,7 @@ public class POSTRequest extends Request {
             throw new Exception("Content-Length must be part of the header.");
         }
 
-        String requestHeader = "POST " + url + " HTTP/1.0\r\n" +
+        String requestHeader = "POST " + path + " HTTP/1.0\r\n" +
                 "Host: " + host + ":" + port + "\r\n" +
                 "User-Agent: Mozilla/5.0 (X11; Linux x86_64)\r\n" +
                 headers +
@@ -98,11 +110,25 @@ public class POSTRequest extends Request {
         //If verbose, print everything
         //Else, ignore the verbose until the body is reached, then print the body
         if(verboseOption){
+            status = responseReader.readLine();
+            response.append(status).append("\n");
+            while (!((currentLine = responseReader.readLine()).equals(""))){
+                if(currentLine.toLowerCase().contains("location: ")){
+                    location = currentLine.substring(currentLine.indexOf(": ") + 1);
+                }
+                response.append(currentLine).append("\n");
+            }
             while ((currentLine = responseReader.readLine()) != null) {
                 response.append(currentLine).append("\n");
             }
         }else{
-            while (!(responseReader.readLine().equals("")));
+            status = responseReader.readLine();
+            response.append(status).append("\n");
+            while (!((currentLine = responseReader.readLine()).equals(""))){
+                if(currentLine.toLowerCase().contains("location: ")){
+                    location = currentLine.substring(currentLine.indexOf(": ") + 1);
+                }
+            }
             while ((currentLine = responseReader.readLine()) != null) {
                 response.append(currentLine).append("\n");
             }
@@ -152,6 +178,10 @@ public class POSTRequest extends Request {
             }
         }
         return body.toString();
+    }
+
+    private boolean isRedirectionNeeded(){
+        return status.contains("300") || status.contains("301") || status.contains("302") || status.contains("304");
     }
     private void getURL() {
         rawUrl = getArgs()[getArgsLength() - 1].replaceAll("[\"']", "");

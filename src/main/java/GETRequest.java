@@ -17,6 +17,8 @@ public class GETRequest extends Request {
     private URL url;
     private String host;
     private int port;
+    private String status;
+    private String location;
 
     public GETRequest(String[] args){
         super(args);
@@ -41,8 +43,18 @@ public class GETRequest extends Request {
             BufferedReader responseReader = new BufferedReader(
                     new InputStreamReader(serviceSocket.getInputStream()));
 
-            sendRequest(requestWriter);
+            sendRequest(requestWriter, url.getPath());
             receiveResponse(responseReader);
+
+            while(isRedirectionNeeded()){
+                if(location != null){
+                    location = null;
+                    sendRequest(requestWriter, location);
+                    receiveResponse(responseReader);
+                }else{
+                    break;
+                }
+            }
 
             requestWriter.close();
             responseReader.close();
@@ -57,14 +69,14 @@ public class GETRequest extends Request {
     }
 
     // Send HTTP request to web server
-    public void sendRequest(BufferedWriter requestWriter) throws IOException {
+    public void sendRequest(BufferedWriter requestWriter, String path) throws IOException {
         Map<String, String> headersMap = headerOption();
         StringBuilder headers = new StringBuilder();
         for(String key: headersMap.keySet()){
             headers.append(key).append(": ").append(headersMap.get(key)).append("\r\n");
         }
 
-        String request = "GET " + url + " HTTP/1.0\r\n" +
+        String request = "GET " + path + " HTTP/1.0\r\n" +
                             "Host: " + host + ":" + port + "\r\n" +
                             "User-Agent: Mozilla/5.0 (X11; Linux x86_64)\r\n" +
                             headers +
@@ -84,11 +96,25 @@ public class GETRequest extends Request {
         //If verbose, print everything
         //Else, ignore the verbose until the body is reached, then print the body
         if(verboseOption){
+            status = responseReader.readLine();
+            response.append(status).append("\n");
+            while (!((currentLine = responseReader.readLine()).equals(""))){
+                if(currentLine.toLowerCase().contains("location: ")){
+                    location = currentLine.substring(currentLine.indexOf(": ") + 1);
+                }
+                response.append(currentLine).append("\n");
+            }
             while ((currentLine = responseReader.readLine()) != null) {
                 response.append(currentLine).append("\n");
             }
         }else{
-            while (!(responseReader.readLine().equals("")));
+            status = responseReader.readLine();
+            response.append(status).append("\n");
+            while (!((currentLine = responseReader.readLine()).equals(""))){
+                if(currentLine.toLowerCase().contains("location: ")){
+                    location = currentLine.substring(currentLine.indexOf(": ") + 1);
+                }
+            }
             while ((currentLine = responseReader.readLine()) != null) {
                 response.append(currentLine).append("\n");
             }
@@ -101,6 +127,10 @@ public class GETRequest extends Request {
         }else{
             System.out.print(response);
         }
+    }
+
+    private boolean isRedirectionNeeded(){
+        return status.contains("300") || status.contains("301") || status.contains("302") || status.contains("304");
     }
 
     private void getURL() {
