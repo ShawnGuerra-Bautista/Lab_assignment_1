@@ -42,30 +42,22 @@ public class POSTRequest extends Request {
             this.url = url;
             host = url.getHost();
             port = url.getDefaultPort();
+            location = url.getPath();
 
-            inetAddress = InetAddress.getByName(host);
-            serviceSocket = new Socket(inetAddress, port);
+            do {
+                inetAddress = InetAddress.getByName(host);
+                serviceSocket = new Socket(inetAddress, port);
 
-            BufferedWriter requestWriter = new BufferedWriter(
-                    new OutputStreamWriter(serviceSocket.getOutputStream(), "UTF-8"));
-            BufferedReader responseReader = new BufferedReader(
-                    new InputStreamReader(serviceSocket.getInputStream()));
-
-            sendRequest(requestWriter, url.getPath());
-            receiveResponse(responseReader);
-
-            while(isRedirectionNeeded()){
-                if(location != null){
-                    location = null;
-                    sendRequest(requestWriter, location);
-                    receiveResponse(responseReader);
-                }else{
-                    break;
-                }
-            }
-
-            requestWriter.close();
-            responseReader.close();
+                BufferedWriter requestWriter = new BufferedWriter(
+                        new OutputStreamWriter(serviceSocket.getOutputStream(), "UTF-8"));
+                BufferedReader responseReader = new BufferedReader(
+                        new InputStreamReader(serviceSocket.getInputStream()));
+                sendRequest(requestWriter, location);
+                location = null;
+                receiveResponse(responseReader);
+                requestWriter.close();
+                responseReader.close();
+            }while(isRedirectionNeeded() && location != null);
 
         } catch(MalformedURLException e){
             System.out.println(e);
@@ -113,8 +105,8 @@ public class POSTRequest extends Request {
             status = responseReader.readLine();
             response.append(status).append("\n");
             while (!((currentLine = responseReader.readLine()).equals(""))){
-                if(currentLine.toLowerCase().contains("location: ")){
-                    location = currentLine.substring(currentLine.indexOf(": ") + 1);
+                if(currentLine.toLowerCase().contains("location")){
+                    location = currentLine.substring(currentLine.indexOf(":") + 1).replaceAll("\\s+","");
                 }
                 response.append(currentLine).append("\n");
             }
@@ -125,8 +117,8 @@ public class POSTRequest extends Request {
             status = responseReader.readLine();
             response.append(status).append("\n");
             while (!((currentLine = responseReader.readLine()).equals(""))){
-                if(currentLine.toLowerCase().contains("location: ")){
-                    location = currentLine.substring(currentLine.indexOf(": ") + 1);
+                if(currentLine.toLowerCase().contains("location")){
+                    location = currentLine.substring(currentLine.indexOf(":") + 1).replaceAll("\\s+","");
                 }
             }
             while ((currentLine = responseReader.readLine()) != null) {
@@ -140,7 +132,7 @@ public class POSTRequest extends Request {
             fileWriter.write(response.toString());
             fileWriter.close();
         }else{
-            System.out.print(response);
+            System.out.println(response);
         }
     }
 
