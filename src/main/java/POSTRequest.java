@@ -126,7 +126,6 @@ public class POSTRequest extends Request {
                 .withRequiredArg()
                 .ofType(String.class);
         OptionSpec<String> fileBodySpec = parser.accepts("f", "Associates the content of a file to the body HTTP post request.")
-                .requiredUnless("d")
                 .availableUnless("d")
                 .withRequiredArg()
                 .ofType(String.class);
