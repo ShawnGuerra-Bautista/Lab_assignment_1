@@ -1,9 +1,12 @@
 /*
-        This request should only be responsible of
-            >Method
-            >Header (Content-length not mandatory)
- */
+    ==============WARNING==============
+    This code contains duplicated code with the POSTRequest class.
+    Refactoring will be needed (it will be done in the next lab)
+    Certain methods must be transferred to the Request abstract class
+    ===================================
 
+    This class is responsible on handling specific tasks concerning the GET request
+ */
 import java.io.*;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -24,6 +27,7 @@ public class GETRequest extends Request {
         getURL();
     }
 
+    //Sends a GET request to the server
     public void execute() {
         InetAddress inetAddress = null;
         Socket serviceSocket = null;
@@ -34,6 +38,7 @@ public class GETRequest extends Request {
             port = url.getDefaultPort();
             location = url.getPath();
 
+            //A 'do-while' loop is present in order to cover the case where a redirection is needed
             do {
                 inetAddress = InetAddress.getByName(host);
                 serviceSocket = new Socket(inetAddress, port);
@@ -110,6 +115,9 @@ public class GETRequest extends Request {
                 response.append(currentLine).append("\n");
             }
         }
+
+        //If the file response option (-o) is present, then output the response in that file
+        //Else, output the response to the terminal
         File fileOutput = fileResponseOption();
         if(fileOutput != null){
             PrintWriter fileWriter = new PrintWriter(fileResponseOption());
@@ -120,10 +128,12 @@ public class GETRequest extends Request {
         }
     }
 
+    //Checks if the status of the response is a 3xx for redirection
     private boolean isRedirectionNeeded(){
         return status.contains("300") || status.contains("301") || status.contains("302") || status.contains("304");
     }
 
+    //Gets the URL of the server that will receive the request
     private void getURL() {
         rawUrl = getArgs()[getArgsLength() - 1].replaceAll("[\"']", "");
     }

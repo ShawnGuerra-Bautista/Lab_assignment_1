@@ -1,3 +1,6 @@
+/*
+    The Help class contains all the 'help/advice' output string when the user inputs the 'help' command
+ */
 public class Help {
 
     private String[] arguments;
@@ -6,6 +9,7 @@ public class Help {
         this.arguments = arguments;
     }
 
+    //Depending on the user's inquiry a particular message will be displayed
     public void executeHelp() {
         if(arguments.length == 1 && arguments[0].equals("help")) {
             System.out.println(generalHelpMessage());
@@ -17,6 +21,8 @@ public class Help {
             System.out.println("Invalid command.");
         }
     }
+
+    //All methods below contain the output strings. Each method corresponds to an option.
 
     private String generalHelpMessage() {
         return "\nhttpc is a curl-like application but supports HTTP protocol only" +

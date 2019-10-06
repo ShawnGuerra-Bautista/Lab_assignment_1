@@ -1,3 +1,7 @@
+/*
+    This abstract class is responsible of any task being used by 'all' (GET/POST) requests
+ */
+
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -7,10 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//All requests (POST/GET) should support
-//      1. -o option
-//      2. -h option
-//      3. -v option
 public abstract class Request {
 
     private String[] args;

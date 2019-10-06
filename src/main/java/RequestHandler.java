@@ -1,3 +1,8 @@
+/*
+    This class is responsible of handling the arguments;
+    depending on the first argument, a particular option will be chosen.
+ */
+
 public class RequestHandler {
 
     private String[] args;

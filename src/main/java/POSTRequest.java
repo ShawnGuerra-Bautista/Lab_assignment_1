@@ -1,11 +1,11 @@
 /*
-        This request should be responsible of
-            >Method
-            >Header (Content-length MANDATORY)
-            >Body
-                >-d option
-                >-f option
-                >Could only support one of them only, not both or neither.
+    ==============WARNING==============
+    This code contains duplicated code with the GETRequest class.
+    Refactoring will be needed (it will be done in the next lab)
+    Certain methods must be transferred to the Request abstract class
+    ===================================
+
+    This class is responsible on handling specific tasks concerning the POST request
  */
 
 import joptsimple.OptionParser;
@@ -32,6 +32,7 @@ public class POSTRequest extends Request {
         getURL();
     }
 
+    //Sends a POST request to the server
     public void execute() {
         InetAddress inetAddress = null;
         Socket serviceSocket = null;
@@ -42,6 +43,7 @@ public class POSTRequest extends Request {
             port = url.getDefaultPort();
             location = url.getPath();
 
+            //A 'do-while' loop is present in order to cover the case where a redirection is needed
             do {
                 inetAddress = InetAddress.getByName(host);
                 serviceSocket = new Socket(inetAddress, port);
@@ -66,6 +68,7 @@ public class POSTRequest extends Request {
         }
     }
 
+    // Send HTTP request to web server
     private void sendRequest(BufferedWriter requestWriter, String path) throws IOException, Exception {
         Map<String, String> headersMap = headerOption();
         StringBuilder headers = new StringBuilder();
@@ -91,6 +94,7 @@ public class POSTRequest extends Request {
         requestWriter.flush();
     }
 
+    //Receives the response from the server
     private void receiveResponse(BufferedReader responseReader) throws IOException {
         boolean verboseOption = verboseOption();
 
@@ -124,6 +128,8 @@ public class POSTRequest extends Request {
             }
         }
 
+        //If the file response option (-o) is present, then output the response in that file
+        //Else, output the response to the terminal
         File fileOutput = fileResponseOption();
         if(fileOutput != null){
             PrintWriter fileWriter = new PrintWriter(fileResponseOption());
@@ -170,9 +176,12 @@ public class POSTRequest extends Request {
         return body.toString();
     }
 
+    //Checks if the status of the response is a 3xx for redirection
     private boolean isRedirectionNeeded(){
         return status.contains("300") || status.contains("301") || status.contains("302") || status.contains("304");
     }
+
+    //Gets the URL of the server that will receive the request
     private void getURL() {
         rawUrl = getArgs()[getArgsLength() - 1].replaceAll("[\"']", "");
     }
