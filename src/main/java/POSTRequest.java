@@ -22,7 +22,6 @@ import java.util.Map;
 public class POSTRequest extends Request {
 
     private String rawUrl;
-    private URL url;
     private String host;
     private int port;
     private String status;
@@ -39,7 +38,6 @@ public class POSTRequest extends Request {
 
         try {
             URL url = new URL(rawUrl);
-            this.url = url;
             host = url.getHost();
             port = url.getDefaultPort();
             location = url.getPath();
