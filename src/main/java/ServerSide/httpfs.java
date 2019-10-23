@@ -8,5 +8,6 @@ public class httpfs
 
         ServerRequestHandler handler = new ServerRequestHandler(args);
         handler.handle();
+
     }
 }

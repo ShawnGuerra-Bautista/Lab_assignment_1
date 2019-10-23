@@ -1,7 +1,6 @@
 package ServerSide;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -17,6 +16,7 @@ public class Server {
     }
 
     public void run(){
+
         ServerSocket server = null;
         try {
             server = new ServerSocket(portNumber);
@@ -41,7 +41,21 @@ public class Server {
         }
     }
 
-    public void processRequest(Socket clientSocket){
+    public void processRequest(Socket clientSocket) {
 
+        try {
+            BufferedWriter requestWriter = new BufferedWriter(
+                    new OutputStreamWriter(clientSocket.getOutputStream(), "UTF-8"));
+            BufferedReader responseReader = new BufferedReader(
+                    new InputStreamReader(clientSocket.getInputStream()));
+
+            String httpResponseHeader;
+
+            String httpResponseBody;
+
+            httpResponseHeader = "HTTP/1.0 200 OK\r\n\r\n";
+
+            //clientSocket.getOutputStream().write();
+        } catch (IOException e) { }
     }
 }
