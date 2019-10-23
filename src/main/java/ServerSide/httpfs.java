@@ -14,19 +14,23 @@ public class httpfs
 {
     static int serverPort = 8080;
 
-    public static void main(String[] args) throws IOException{
+    public static void main(String[] args) {
 
-        try( ServerSocket server = new ServerSocket(serverPort) ){
-            System.out.println("Server has been instantiated at port " + serverPort);
+        ServerSocket server = null;
+        try {
+            server = new ServerSocket(serverPort);
+        }catch(IOException e) {
+            System.out.println(e);
+        }
 
-            while(true){
-
-                try ( Socket client_connection = server.accept() )
-                {
-                    PrintWriter outbount_client = new PrintWriter(client_connection.getOutputStream(), true);
-                    outbount_client.println("Well hello to you too.");
-                    client_connection.close();
-                }
+        //Accept requests
+        Socket client;
+        while(true){
+            //Accept Requests
+            try {
+                client = server.accept();
+            }catch(IOException e){
+                System.out.println(e);
             }
         }
     }
