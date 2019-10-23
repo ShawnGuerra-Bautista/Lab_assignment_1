@@ -8,25 +8,5 @@ public class httpfs
 
         ServerRequestHandler handler = new ServerRequestHandler(args);
         handler.handle();
-
-        /*
-            ServerSocket server = null;
-            try {
-                server = new ServerSocket(serverPort);
-            }catch(IOException e) {
-                System.out.println(e);
-            }
-
-            //Accept requests
-            Socket client;
-            while(true){
-                //Accept Requests
-                try {
-                    client = server.accept();
-                }catch(IOException e){
-                    System.out.println(e);
-                }
-            }
-         */
     }
 }

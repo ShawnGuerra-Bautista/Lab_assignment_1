@@ -18,7 +18,7 @@ public class ServerRequestHandler {
         server.run();
     }
 
-    public boolean debugOption(){
+    public boolean debugOption() {
         OptionParser parser = new OptionParser();
         parser.accepts("v", "Prints debugging messages");
         parser.allowsUnrecognizedOptions();
@@ -26,7 +26,7 @@ public class ServerRequestHandler {
         return debugOption.has("v");
     }
 
-    public int portOption(){
+    public int portOption() {
         OptionParser parser = new OptionParser();
         OptionSpec<Integer> portSpec = parser.accepts("p", "Specifies the port number that the server" +
                 " will listen and server at.\nDefault is 8080.")
@@ -43,7 +43,7 @@ public class ServerRequestHandler {
         return portResponse;
     }
 
-    public File pathOption(){
+    public File pathOption() {
         OptionParser parser = new OptionParser();
         OptionSpec<String> pathSpec = parser.accepts("d", "Specifies the directory that the server " +
                 "will use to read/write requested files. Default is the current directory " +
