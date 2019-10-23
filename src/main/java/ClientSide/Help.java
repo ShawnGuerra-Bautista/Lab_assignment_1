@@ -1,3 +1,4 @@
+package ClientSide;
 /*
     The Help class contains all the 'help/advice' output string when the user inputs the 'help' command
  */

@@ -1,3 +1,4 @@
+package ClientSide;
 /*
     This abstract class is responsible of any task being used by 'all' (GET/POST) requests
  */

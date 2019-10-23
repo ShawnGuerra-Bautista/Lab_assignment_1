@@ -1,17 +1,13 @@
+package ClientSide;
 /*
     ==============WARNING==============
-    This code contains duplicated code with the GETRequest class.
+    This code contains duplicated code with the POSTRequest class.
     Refactoring will be needed (it will be done in the next lab)
     Certain methods must be transferred to the Request abstract class
     ===================================
 
-    This class is responsible on handling specific tasks concerning the POST request
+    This class is responsible on handling specific tasks concerning the GET request
  */
-
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import joptsimple.OptionSpec;
-
 import java.io.*;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -19,7 +15,7 @@ import java.net.Socket;
 import java.net.URL;
 import java.util.Map;
 
-public class POSTRequest extends Request {
+public class GETRequest extends Request {
 
     private String rawUrl;
     private String host;
@@ -27,12 +23,12 @@ public class POSTRequest extends Request {
     private String status;
     private String location;
 
-    public POSTRequest(String[] args){
+    public GETRequest(String[] args){
         super(args);
         getURL();
     }
 
-    //Sends a POST request to the server
+    //Sends a GET request to the server
     public void execute() {
         InetAddress inetAddress = null;
         Socket serviceSocket = null;
@@ -52,6 +48,7 @@ public class POSTRequest extends Request {
                         new OutputStreamWriter(serviceSocket.getOutputStream(), "UTF-8"));
                 BufferedReader responseReader = new BufferedReader(
                         new InputStreamReader(serviceSocket.getInputStream()));
+
                 sendRequest(requestWriter, location);
                 location = null;
                 receiveResponse(responseReader);
@@ -69,33 +66,25 @@ public class POSTRequest extends Request {
     }
 
     // Send HTTP request to web server
-    private void sendRequest(BufferedWriter requestWriter, String path) throws IOException, Exception {
+    public void sendRequest(BufferedWriter requestWriter, String path) throws IOException {
         Map<String, String> headersMap = headerOption();
         StringBuilder headers = new StringBuilder();
-
-        if(headersMap.containsKey("Content-Length")) {
-            for (String key : headersMap.keySet()) {
-                headers.append(key).append(": ").append(headersMap.get(key)).append("\r\n");
-            }
-        }else{
-            throw new Exception("Content-Length must be part of the header.");
+        for(String key: headersMap.keySet()){
+            headers.append(key).append(": ").append(headersMap.get(key)).append("\r\n");
         }
 
-        String requestHeader = "POST " + path + " HTTP/1.0\r\n" +
-                "Host: " + host + ":" + port + "\r\n" +
-                "User-Agent: Mozilla/5.0 (X11; Linux x86_64)\r\n" +
-                headers +
-                "Connection: close\r\n" +
-                "\r\n";
-
-        String requestBody = bodyOption();
-        requestWriter.write(requestHeader + requestBody);
-
+        String request = "GET " + path + " HTTP/1.0\r\n" +
+                            "Host: " + host + ":" + port + "\r\n" +
+                            "User-Agent: Mozilla/5.0 (X11; Linux x86_64)\r\n" +
+                            headers +
+                            "Connection: close\r\n" +
+                            "\r\n";
+        requestWriter.write(request);
         requestWriter.flush();
     }
 
     //Receives the response from the server
-    private void receiveResponse(BufferedReader responseReader) throws IOException {
+    public void receiveResponse(BufferedReader responseReader) throws IOException {
         boolean verboseOption = verboseOption();
 
         StringBuilder response = new StringBuilder();
@@ -138,42 +127,6 @@ public class POSTRequest extends Request {
         }else{
             System.out.println(response);
         }
-    }
-
-    private String bodyOption() {
-        StringBuilder body = new StringBuilder();
-
-        OptionParser parser = new OptionParser();
-        OptionSpec<String> rawBodySpec = parser.accepts("d", "Associates an inline data to the body HTTP POST request.")
-                .withRequiredArg()
-                .ofType(String.class);
-        OptionSpec<String> fileBodySpec = parser.accepts("f", "Associates the content of a file to the body HTTP post request.")
-                .availableUnless("d")
-                .withRequiredArg()
-                .ofType(String.class);
-        parser.allowsUnrecognizedOptions();
-        OptionSet bodyOption = parser.parse(getArgs());
-
-        if(bodyOption.has("d")) {
-            body = new StringBuilder(bodyOption.valueOf(rawBodySpec));
-        }else if(bodyOption.has("f")){
-            try {
-                String fileName = bodyOption.valueOf(fileBodySpec);
-                File file = new File(fileName);
-                BufferedReader fileReader = new BufferedReader(new FileReader(file));
-                String currentLine;
-                while ((currentLine = fileReader.readLine()) != null) {
-                    body.append(currentLine);
-                }
-            }catch (FileNotFoundException e){
-                System.out.println(e);
-            }catch (IOException e){
-                System.out.println(e);
-            }catch (Exception e){
-                System.out.println(e);
-            }
-        }
-        return body.toString();
     }
 
     //Checks if the status of the response is a 3xx for redirection
