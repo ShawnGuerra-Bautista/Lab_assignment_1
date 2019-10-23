@@ -14,7 +14,8 @@ public class ServerRequestHandler {
     }
 
     public void handle(){
-
+        Server server = new Server(debugOption(), portOption(), pathOption());
+        server.run();
     }
 
     public boolean debugOption(){
