@@ -22,22 +22,20 @@ public class Server {
         try {
             server = new ServerSocket(portNumber);
         }catch(IOException e) {
-            System.out.println(e);
+            System.out.println(statusCodes(400, "HTTP/1.0"));
         }
 
-        System.out.println("Starting connection on port: " + portNumber);
+        if(isDebugMessage){
+            System.out.println("Starting connection on port: " + portNumber);
+        }
 
         Socket clientSocket = null;
         while(true){
             try {
                 clientSocket = server.accept();
-            }catch(IOException e){
-                System.out.println(e);
-            }
-            try {
                 processRequest(clientSocket);
-            }catch(Exception e){
-                System.out.println(e);
+            }catch(IOException e){
+                System.out.println(statusCodes(400, "HTTP/1.0"));
             }
         }
     }
@@ -57,21 +55,36 @@ public class Server {
                 request.append(currentCharacter);
             }
 
+            if(isDebugMessage){
+                System.out.println("Request content:\n" + request);
+            }
+
             String[] headerAndBody = request.toString().split("\r\n\r\n");
             header = headerAndBody[0];
             if(headerAndBody.length > 1){
                 body = headerAndBody[1];
             }
 
+            if(isDebugMessage){
+                System.out.println("header:\n" + header);
+                System.out.println("Body:\n" + body);
+            }
+
             String requestStatus = executingRequest(header, body);
+
+            if(isDebugMessage){
+                System.out.println("Request Status:\n" + requestStatus);
+            }
+
             processResponse(clientSocket, requestStatus, header, body);
 
             requestReader.close();
         } catch (IOException e) {
-
+            System.out.println(statusCodes(400, "HTTP/1.0"));
         }
     }
 
+    //TODO
     //Locates & creates/overwrite files
     public String executingRequest(String header, String body){
 
@@ -100,11 +113,11 @@ public class Server {
             responseWriter.flush();
             responseWriter.close();
         }catch(IOException e){
-            System.out.println(e);
+            System.out.println(statusCodes(400, "HTTP/1.0"));
         }
-
     }
 
+    //TODO
     //Creates the response
     public String responseOutput(){
         return null;
@@ -129,8 +142,8 @@ public class Server {
             while ((currentLine = fileReader.readLine()) != null) {
                 content.append(currentLine);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException e){
+
         }
         return content.toString();
     }
