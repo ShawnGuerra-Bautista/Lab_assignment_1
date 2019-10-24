@@ -29,7 +29,7 @@ public class Server {
             System.out.println("Starting connection on port: " + portNumber);
         }
 
-        Socket clientSocket = null;
+        Socket clientSocket;
         while(true){
             try {
                 clientSocket = server.accept();
@@ -127,8 +127,8 @@ public class Server {
     public String listFilesInDirectory(){
         File[] listOfFilesArray = filePath.listFiles();
         StringBuilder listOfFiles = new StringBuilder();
-        for(int i = 0; i < listOfFilesArray.length; i++){
-            listOfFiles.append(listOfFilesArray[i]).append("\n");
+        for (File file : listOfFilesArray) {
+            listOfFiles.append(file).append("\n");
         }
         return listOfFiles.toString();
     }
@@ -143,7 +143,7 @@ public class Server {
                 content.append(currentLine);
             }
         } catch (IOException e){
-
+            System.out.println(statusCodes(400, "HTTP/1.0"));
         }
         return content.toString();
     }
@@ -155,7 +155,7 @@ public class Server {
             fileWriter.write(content);
             fileWriter.close();
         } catch(FileNotFoundException e){
-
+            System.out.println(statusCodes(404, "HTTP/1.0"));
         }
 
     }
