@@ -8,12 +8,12 @@ import java.nio.charset.StandardCharsets;
 public class Server {
     private boolean isDebugMessage;
     private int portNumber;
-    private File path;
+    private File filePath;
 
-    public Server(boolean isDebugMessage, int portNumber, File path){
+    public Server(boolean isDebugMessage, int portNumber, File filePath){
         this.isDebugMessage = isDebugMessage;
         this.portNumber = portNumber;
-        this.path = path;
+        this.filePath = filePath;
     }
 
     public void run(){
@@ -107,6 +107,21 @@ public class Server {
     //Creates the response
     public String responseOutput(){
         return null;
+    }
+
+    //List all the files if it is a directory
+    public String listFilesInDirectory(File filePath){
+        return null;
+    }
+
+    //read the file content
+    public String readFile(File filePath){
+        return null;
+    }
+
+    //Write the content to the file
+    public void writeFile(File filePath, String content){
+
     }
 
     //List of a ll status codes

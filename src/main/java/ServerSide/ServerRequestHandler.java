@@ -14,7 +14,7 @@ public class ServerRequestHandler {
     }
 
     public void handle(){
-        Server server = new Server(debugOption(), portOption(), pathOption());
+        Server server = new Server(debugOption(), portOption(), filePathOption());
         server.run();
     }
 
@@ -43,22 +43,22 @@ public class ServerRequestHandler {
         return portResponse;
     }
 
-    public File pathOption() {
+    public File filePathOption() {
         OptionParser parser = new OptionParser();
-        OptionSpec<String> pathSpec = parser.accepts("d", "Specifies the directory that the server " +
+        OptionSpec<String> filePathSpec = parser.accepts("d", "Specifies the directory that the server " +
                 "will use to read/write requested files. Default is the current directory " +
                 "when launching the application.")
                 .withRequiredArg()
                 .ofType(String.class);
         parser.allowsUnrecognizedOptions();
-        OptionSet pathResponseOption = parser.parse(args);
+        OptionSet filePathResponseOption = parser.parse(args);
 
-        File pathResponse = null;
-        if(pathResponseOption.has("d")){
-            pathResponse = new File(pathResponseOption.valueOf(pathSpec).replaceAll("[\"']", ""));
+        File filePathResponse = null;
+        if(filePathResponseOption.has("d")){
+            filePathResponse = new File(filePathResponseOption.valueOf(filePathSpec).replaceAll("[\"']", ""));
         }else{
-            pathResponse = new File("/");
+            filePathResponse = new File("/");
         }
-        return pathResponse;
+        return filePathResponse;
     }
 }
