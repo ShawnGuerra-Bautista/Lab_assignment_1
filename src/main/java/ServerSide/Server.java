@@ -41,21 +41,80 @@ public class Server {
         }
     }
 
+    //Reads the request
     public void processRequest(Socket clientSocket) {
 
+        StringBuilder request = new StringBuilder();
+        String header = null;
+        String body = null;
         try {
-            BufferedWriter requestWriter = new BufferedWriter(
-                    new OutputStreamWriter(clientSocket.getOutputStream(), "UTF-8"));
-            BufferedReader responseReader = new BufferedReader(
+            BufferedReader requestReader = new BufferedReader(
                     new InputStreamReader(clientSocket.getInputStream()));
 
-            String httpResponseHeader;
+            int currentCharacter;
+            while((currentCharacter = requestReader.read()) != -1){
+                request.append(currentCharacter);
+            }
 
-            String httpResponseBody;
+            String[] headerAndBody = request.toString().split("\r\n\r\n");
+            header = headerAndBody[0];
+            if(headerAndBody.length > 1){
+                body = headerAndBody[1];
+            }
 
-            httpResponseHeader = "HTTP/1.0 200 OK\r\n\r\n";
+            executingRequest(headerAndBody);
+            processResponse(clientSocket);
 
-            //clientSocket.getOutputStream().write();
-        } catch (IOException e) { }
+            requestReader.close();
+        } catch (IOException e) {
+
+        }
+    }
+
+    //Locates & creates files
+    public void executingRequest(String[] headerAndBody){
+
+    }
+
+    //Use the printwriter to output a response
+    public void processResponse(Socket clientSocket){
+        try {
+            PrintWriter responseWriter = new PrintWriter(clientSocket.getOutputStream());
+
+
+            responseWriter.flush();
+            responseWriter.close();
+        }catch(IOException e){
+            System.out.println(e);
+        }
+
+    }
+
+    //Creates the response
+    public String responseOutput(){
+        return null;
+    }
+
+    //List of a ll status codes
+    private String statusCodes(int code, String httpVersion){
+        String status = "";
+        switch(code){
+            case 200:
+                status = httpVersion + " 200: OK";
+                break;
+            case 201:
+                status = httpVersion + " 201: Created";
+                break;
+            case 400:
+                status = httpVersion + " 400: Bad Request";
+                break;
+            case 403:
+                status = httpVersion + " 403: Forbidden";
+                break;
+            case 404:
+                status = httpVersion + " 404: Not Found";
+                break;
+        }
+        return status;
     }
 }

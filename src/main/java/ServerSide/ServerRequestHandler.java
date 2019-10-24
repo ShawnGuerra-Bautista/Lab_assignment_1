@@ -56,6 +56,8 @@ public class ServerRequestHandler {
         File pathResponse = null;
         if(pathResponseOption.has("d")){
             pathResponse = new File(pathResponseOption.valueOf(pathSpec).replaceAll("[\"']", ""));
+        }else{
+            pathResponse = new File("/");
         }
         return pathResponse;
     }
