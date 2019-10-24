@@ -22,7 +22,7 @@ public class Server {
         try {
             server = new ServerSocket(portNumber);
         }catch(IOException e) {
-            System.out.println(statusCodes(400, "HTTP/1.0"));
+            System.out.println(e);
         }
 
         if(isDebugMessage){
@@ -35,7 +35,7 @@ public class Server {
                 clientSocket = server.accept();
                 processRequest(clientSocket);
             }catch(IOException e){
-                System.out.println(statusCodes(400, "HTTP/1.0"));
+                System.out.println(e);
             }
         }
     }
@@ -80,25 +80,56 @@ public class Server {
 
             requestReader.close();
         } catch (IOException e) {
-            System.out.println(statusCodes(400, "HTTP/1.0"));
+            System.out.println(e);
         }
     }
 
-    //TODO
     //Locates & creates/overwrite files
-    public String executingRequest(String header, String body){
+    public String executingRequest(String header, String body) {
 
-
+        String requestStatus = "";
         String[] separatedHeader = header.split("\r\n");
         String[] operationInfo = separatedHeader[0].split(" ");
 
-        //If GET
-            //If directory, then return all files
-            //If file, return the content
-        //If post
-            //Create or overwrite content of files
+        try {
+            if(operationInfo[0].toLowerCase().equals("get")){
 
-        return null;
+                if(!filePath.exists()){
+                    requestStatus = statusCodes(404, "HTTP/1.0");
+                }
+
+                if(filePath.isDirectory()){
+                    requestStatus = listFilesInDirectory();
+                    requestStatus = statusCodes(200, "HTTP/1.0");
+                }else{
+                    requestStatus = readFile();
+                    requestStatus = statusCodes(200, "HTTP/1.0");
+                }
+
+            }else if(operationInfo[0].toLowerCase().equals("post")){
+
+                if(!filePath.exists()){
+                    if(filePath.getParentFile().mkdirs() && filePath.createNewFile()){
+                        writeFile(body);
+                        requestStatus = statusCodes(201, "HTTP/1.0");
+                    }else{
+                        requestStatus = statusCodes(403, "HTTP/1.0");
+                    }
+                }else if(filePath.exists() && !filePath.isDirectory()){
+                    writeFile(body);
+                    requestStatus = statusCodes(200, "HTTP/1.0");
+                }else{
+                    requestStatus = statusCodes(403, "HTTP/1.0");
+                }
+
+            }else{
+                requestStatus = statusCodes(400, "HTTP/1.0");
+            }
+        } catch(Exception e){
+            System.out.println(e);
+        }
+
+        return requestStatus;
     }
 
     //Use the printwriter to output a response
@@ -107,20 +138,27 @@ public class Server {
             BufferedWriter responseWriter = new BufferedWriter(
                     new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
 
-            String response = responseOutput();
+            String response = responseOutput(requestStatus, header, body);
 
             responseWriter.write(response);
             responseWriter.flush();
             responseWriter.close();
         }catch(IOException e){
-            System.out.println(statusCodes(400, "HTTP/1.0"));
+            System.out.println(e);
         }
     }
 
-    //TODO
     //Creates the response
-    public String responseOutput(){
-        return null;
+    public String responseOutput(String requestStatus, String header, String body){
+        if(requestStatus.contains("400") || requestStatus.contains("403") || requestStatus.contains("404")){
+            return requestStatus;
+        }else{
+            StringBuilder response = new StringBuilder();
+            response.append(requestStatus).append("\r\n");
+            response.append(header).append("\r\n\r\n");
+            response.append(body);
+            return response.toString();
+        }
     }
 
     //List all the files if it is a directory
@@ -143,7 +181,7 @@ public class Server {
                 content.append(currentLine);
             }
         } catch (IOException e){
-            System.out.println(statusCodes(400, "HTTP/1.0"));
+            System.out.println(e);
         }
         return content.toString();
     }
@@ -155,7 +193,7 @@ public class Server {
             fileWriter.write(content);
             fileWriter.close();
         } catch(FileNotFoundException e){
-            System.out.println(statusCodes(404, "HTTP/1.0"));
+            System.out.println(e);
         }
 
     }
