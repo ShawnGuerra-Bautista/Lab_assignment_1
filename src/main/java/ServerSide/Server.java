@@ -34,6 +34,7 @@ public class Server {
             try {
                 clientSocket = server.accept();
                 processRequest(clientSocket);
+                clientSocket.close();
             }catch(IOException e){
                 System.out.println(e);
             }
@@ -52,7 +53,7 @@ public class Server {
 
             int currentCharacter;
             while((currentCharacter = requestReader.read()) != -1){
-                request.append(currentCharacter);
+                request.append((char)currentCharacter);
             }
 
             if(isDebugMessage){

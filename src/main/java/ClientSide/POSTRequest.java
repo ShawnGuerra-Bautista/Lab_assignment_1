@@ -41,7 +41,7 @@ public class POSTRequest extends Request {
         try {
             URL url = new URL(rawUrl);
             host = url.getHost();
-            port = url.getDefaultPort();
+            port = url.getPort();
             location = url.getPath();
 
             //A 'do-while' loop is present in order to cover the case where a redirection is needed
