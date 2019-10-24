@@ -96,6 +96,7 @@ public class Server {
 
             String response = responseOutput();
 
+            responseWriter.write(response);
             responseWriter.flush();
             responseWriter.close();
         }catch(IOException e){
@@ -110,17 +111,39 @@ public class Server {
     }
 
     //List all the files if it is a directory
-    public String listFilesInDirectory(File filePath){
-        return null;
+    public String listFilesInDirectory(){
+        File[] listOfFilesArray = filePath.listFiles();
+        StringBuilder listOfFiles = new StringBuilder();
+        for(int i = 0; i < listOfFilesArray.length; i++){
+            listOfFiles.append(listOfFilesArray[i]).append("\n");
+        }
+        return listOfFiles.toString();
     }
 
     //read the file content
-    public String readFile(File filePath){
-        return null;
+    public String readFile(){
+        StringBuilder content = new StringBuilder();
+        try {
+            BufferedReader fileReader = new BufferedReader(new FileReader(filePath));
+            String currentLine;
+            while ((currentLine = fileReader.readLine()) != null) {
+                content.append(currentLine);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return content.toString();
     }
 
-    //Write the content to the file
-    public void writeFile(File filePath, String content){
+    //Write the content/body to the file
+    public void writeFile(String content) {
+        try {
+            PrintWriter fileWriter = new PrintWriter(filePath);
+            fileWriter.write(content);
+            fileWriter.close();
+        } catch(FileNotFoundException e){
+
+        }
 
     }
 
