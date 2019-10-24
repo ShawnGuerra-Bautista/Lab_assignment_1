@@ -118,7 +118,6 @@ public class POSTRequest extends Request {
             }
         }else{
             status = responseReader.readLine();
-            response.append(status).append("\n");
             while (!((currentLine = responseReader.readLine()).equals(""))){
                 if(currentLine.toLowerCase().contains("location")){
                     location = currentLine.substring(currentLine.indexOf(":") + 1).replaceAll("\\s+","");
