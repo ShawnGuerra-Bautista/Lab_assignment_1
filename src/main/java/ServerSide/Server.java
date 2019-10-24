@@ -3,6 +3,7 @@ package ServerSide;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class Server {
     private boolean isDebugMessage;
@@ -45,8 +46,8 @@ public class Server {
     public void processRequest(Socket clientSocket) {
 
         StringBuilder request = new StringBuilder();
-        String header = null;
-        String body = null;
+        String header = "";
+        String body = "";
         try {
             BufferedReader requestReader = new BufferedReader(
                     new InputStreamReader(clientSocket.getInputStream()));
@@ -62,8 +63,8 @@ public class Server {
                 body = headerAndBody[1];
             }
 
-            executingRequest(headerAndBody);
-            processResponse(clientSocket);
+            String requestStatus = executingRequest(header, body);
+            processResponse(clientSocket, requestStatus, header, body);
 
             requestReader.close();
         } catch (IOException e) {
@@ -71,16 +72,29 @@ public class Server {
         }
     }
 
-    //Locates & creates files
-    public void executingRequest(String[] headerAndBody){
+    //Locates & creates/overwrite files
+    public String executingRequest(String header, String body){
 
+
+        String[] separatedHeader = header.split("\r\n");
+        String[] operationInfo = separatedHeader[0].split(" ");
+
+        //If GET
+            //If directory, then return all files
+            //If file, return the content
+        //If post
+            //Create or overwrite content of files
+
+        return null;
     }
 
     //Use the printwriter to output a response
-    public void processResponse(Socket clientSocket){
+    public void processResponse(Socket clientSocket, String requestStatus, String header, String body){
         try {
-            PrintWriter responseWriter = new PrintWriter(clientSocket.getOutputStream());
+            BufferedWriter responseWriter = new BufferedWriter(
+                    new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
 
+            String response = responseOutput();
 
             responseWriter.flush();
             responseWriter.close();
