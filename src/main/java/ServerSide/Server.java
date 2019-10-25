@@ -51,10 +51,14 @@ public class Server {
             BufferedReader requestReader = new BufferedReader(
                     new InputStreamReader(clientSocket.getInputStream()));
 
-            int currentCharacter;
-            while((currentCharacter = requestReader.read()) != -1 && requestReader.ready()){
-                request.append((char)currentCharacter);
+            if(isDebugMessage){
+                System.out.println("Ready?: " + requestReader.ready());
             }
+
+            int currentCharacter = requestReader.read();
+            do{
+                request.append((char)currentCharacter);
+            }while(requestReader.ready() && (currentCharacter = requestReader.read()) != -1);
 
             if(isDebugMessage){
                 System.out.println("Request content:\n" + request);
@@ -67,17 +71,22 @@ public class Server {
             }
 
             if(isDebugMessage){
-                System.out.println("header:\n" + header);
+                System.out.println("Header:\n" + header);
                 System.out.println("Body:\n" + body);
             }
 
-            String requestStatus = executingRequest(header, body);
+            String[] requestStatus = executingRequest(header, body);
 
             if(isDebugMessage){
-                System.out.println("Request Status:\n" + requestStatus);
+                System.out.println("Request Status:\n" + requestStatus[0]);
+                System.out.println("Request result:\n" + requestStatus[1]);
             }
 
-            processResponse(clientSocket, requestStatus, header, body);
+            if(requestStatus[1] != null){
+                body = requestStatus[1];
+            }
+
+            processResponse(clientSocket, requestStatus[0], header, body);
 
             requestReader.close();
         } catch (IOException e) {
@@ -86,25 +95,36 @@ public class Server {
     }
 
     //Locates & creates/overwrite files
-    public String executingRequest(String header, String body) {
+    public String[] executingRequest(String header, String body) {
 
-        String requestStatus = "";
+        String[] requestStatus = new String[2];
+        requestStatus[1] = null;
         String[] separatedHeader = header.split("\r\n");
         String[] operationInfo = separatedHeader[0].split(" ");
 
         try {
+
+            if(isDebugMessage){
+                System.out.println("Accessing filepath: " + filePath.toString());
+            }
+
+            if(filePath.toString().contains("/..")){
+                requestStatus[0] = statusCodes(403, "HTTP/1.0");
+                return requestStatus;
+            }
+
             if(operationInfo[0].toLowerCase().equals("get")){
 
                 if(!filePath.exists()){
-                    requestStatus = statusCodes(404, "HTTP/1.0");
+                    requestStatus[0] = statusCodes(404, "HTTP/1.0");
                 }
 
                 if(filePath.isDirectory()){
-                    requestStatus = listFilesInDirectory();
-                    requestStatus = statusCodes(200, "HTTP/1.0");
+                    requestStatus[1] = "List of Files:\n" + listFilesInDirectory();
+                    requestStatus[0] = statusCodes(200, "HTTP/1.0");
                 }else{
-                    requestStatus = readFile();
-                    requestStatus = statusCodes(200, "HTTP/1.0");
+                    requestStatus[1] = "Content of file:\n" + readFile();
+                    requestStatus[0] = statusCodes(200, "HTTP/1.0");
                 }
 
             }else if(operationInfo[0].toLowerCase().equals("post")){
@@ -112,19 +132,19 @@ public class Server {
                 if(!filePath.exists()){
                     if(filePath.getParentFile().mkdirs() && filePath.createNewFile()){
                         writeFile(body);
-                        requestStatus = statusCodes(201, "HTTP/1.0");
+                        requestStatus[0] = statusCodes(201, "HTTP/1.0");
                     }else{
-                        requestStatus = statusCodes(403, "HTTP/1.0");
+                        requestStatus[0] = statusCodes(403, "HTTP/1.0");
                     }
                 }else if(filePath.exists() && !filePath.isDirectory()){
                     writeFile(body);
-                    requestStatus = statusCodes(200, "HTTP/1.0");
+                    requestStatus[0] = statusCodes(200, "HTTP/1.0");
                 }else{
-                    requestStatus = statusCodes(403, "HTTP/1.0");
+                    requestStatus[0] = statusCodes(403, "HTTP/1.0");
                 }
 
             }else{
-                requestStatus = statusCodes(400, "HTTP/1.0");
+                requestStatus[0] = statusCodes(400, "HTTP/1.0");
             }
         } catch(Exception e){
             System.out.println(e);
@@ -151,13 +171,24 @@ public class Server {
 
     //Creates the response
     public String responseOutput(String requestStatus, String header, String body){
+
+        if(isDebugMessage){
+            System.out.println("Header:\n" + header);
+        }
+
         if(requestStatus.contains("400") || requestStatus.contains("403") || requestStatus.contains("404")){
             return requestStatus;
         }else{
+            header = header.substring(header.indexOf('\n')+1);
             StringBuilder response = new StringBuilder();
             response.append(requestStatus).append("\r\n");
             response.append(header).append("\r\n\r\n");
             response.append(body);
+
+            if(isDebugMessage){
+                System.out.println("Response: " + response);
+            }
+
             return response.toString();
         }
     }

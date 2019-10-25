@@ -95,22 +95,24 @@ public class GETRequest extends Request {
         if(verboseOption){
             status = responseReader.readLine();
             response.append(status).append("\n");
-            while (!((currentLine = responseReader.readLine()).equals(""))){
+            while ((currentLine = responseReader.readLine()) != null && !(currentLine .equals(""))){
                 if(currentLine.toLowerCase().contains("location")){
                     location = currentLine.substring(currentLine.indexOf(":") + 1).replaceAll("\\s+","");
                 }
                 response.append(currentLine).append("\n");
             }
+            response.append("\n");
             while ((currentLine = responseReader.readLine()) != null) {
                 response.append(currentLine).append("\n");
             }
         }else{
             status = responseReader.readLine();
-            while (!((currentLine = responseReader.readLine()).equals(""))){
+            while ((currentLine = responseReader.readLine()) != null && !(currentLine .equals(""))){
                 if(currentLine.toLowerCase().contains("location")){
                     location = currentLine.substring(currentLine.indexOf(":") + 1).replaceAll("\\s+","");
                 }
             }
+            response.append("\n");
             while ((currentLine = responseReader.readLine()) != null) {
                 response.append(currentLine).append("\n");
             }
