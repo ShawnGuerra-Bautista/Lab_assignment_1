@@ -52,7 +52,7 @@ public class Server {
                     new InputStreamReader(clientSocket.getInputStream()));
 
             int currentCharacter;
-            while((currentCharacter = requestReader.read()) != -1){
+            while((currentCharacter = requestReader.read()) != -1 && requestReader.ready()){
                 request.append((char)currentCharacter);
             }
 
