@@ -8,12 +8,12 @@ import java.nio.charset.StandardCharsets;
 public class Server {
     private boolean isDebugMessage;
     private int portNumber;
-    private File filePath;
+    private String filePathName;
 
-    public Server(boolean isDebugMessage, int portNumber, File filePath){
+    public Server(boolean isDebugMessage, int portNumber, String filePathName){
         this.isDebugMessage = isDebugMessage;
         this.portNumber = portNumber;
-        this.filePath = filePath;
+        this.filePathName = filePathName;
     }
 
     public void run(){
@@ -97,10 +97,18 @@ public class Server {
     //Locates & creates/overwrite files
     public String[] executingRequest(String header, String body) {
 
-        String[] requestStatus = new String[2];
+        String[] requestStatus = new String[3];
         requestStatus[1] = null;
         String[] separatedHeader = header.split("\r\n");
+        // 1 = path; 0 = post/get; 2 = version
         String[] operationInfo = separatedHeader[0].split(" ");
+
+        File filePath = new File(filePathName + operationInfo[1]);
+
+        if(filePath.toString().contains("/..")){
+            requestStatus[0] = statusCodes(403, "HTTP/1.0");
+            return requestStatus;
+        }
 
         try {
 
@@ -108,36 +116,35 @@ public class Server {
                 System.out.println("Accessing filepath: " + filePath.toString());
             }
 
-            if(filePath.toString().contains("/..")){
-                requestStatus[0] = statusCodes(403, "HTTP/1.0");
-                return requestStatus;
-            }
-
             if(operationInfo[0].toLowerCase().equals("get")){
 
                 if(!filePath.exists()){
                     requestStatus[0] = statusCodes(404, "HTTP/1.0");
+                    return requestStatus;
                 }
 
                 if(filePath.isDirectory()){
-                    requestStatus[1] = "List of Files:\n" + listFilesInDirectory();
+                    requestStatus[1] = "List of Files:\n" + listFilesInDirectory(filePath);
                     requestStatus[0] = statusCodes(200, "HTTP/1.0");
                 }else{
-                    requestStatus[1] = "Content of file:\n" + readFile();
+                    requestStatus[1] = "Content of file:\n" + readFile(filePath);
                     requestStatus[0] = statusCodes(200, "HTTP/1.0");
                 }
 
             }else if(operationInfo[0].toLowerCase().equals("post")){
 
                 if(!filePath.exists()){
-                    if(filePath.getParentFile().mkdirs() && filePath.createNewFile()){
-                        writeFile(body);
+                    if(!filePath.getParentFile().exists() && filePath.getParentFile().mkdirs() && filePath.createNewFile()){
+                        writeFile(filePath, body);
+                        requestStatus[0] = statusCodes(201, "HTTP/1.0");
+                    }else if(filePath.getParentFile().exists() && filePath.createNewFile()){
+                        writeFile(filePath, body);
                         requestStatus[0] = statusCodes(201, "HTTP/1.0");
                     }else{
                         requestStatus[0] = statusCodes(403, "HTTP/1.0");
                     }
                 }else if(filePath.exists() && !filePath.isDirectory()){
-                    writeFile(body);
+                    writeFile(filePath, body);
                     requestStatus[0] = statusCodes(200, "HTTP/1.0");
                 }else{
                     requestStatus[0] = statusCodes(403, "HTTP/1.0");
@@ -194,17 +201,17 @@ public class Server {
     }
 
     //List all the files if it is a directory
-    public String listFilesInDirectory(){
+    public String listFilesInDirectory(File filePath){
         File[] listOfFilesArray = filePath.listFiles();
         StringBuilder listOfFiles = new StringBuilder();
         for (File file : listOfFilesArray) {
-            listOfFiles.append(file).append("\n");
+            listOfFiles.append(file.isDirectory() ? "Directory: " : "File: ").append(file.getName()).append("\n");
         }
         return listOfFiles.toString();
     }
 
     //read the file content
-    public String readFile(){
+    public String readFile(File filePath){
         StringBuilder content = new StringBuilder();
         try {
             BufferedReader fileReader = new BufferedReader(new FileReader(filePath));
@@ -212,6 +219,7 @@ public class Server {
             while ((currentLine = fileReader.readLine()) != null) {
                 content.append(currentLine);
             }
+            fileReader.close();
         } catch (IOException e){
             System.out.println(e);
         }
@@ -219,7 +227,7 @@ public class Server {
     }
 
     //Write the content/body to the file
-    public void writeFile(String content) {
+    public void writeFile(File filePath, String content) {
         try {
             PrintWriter fileWriter = new PrintWriter(filePath);
             fileWriter.write(content);

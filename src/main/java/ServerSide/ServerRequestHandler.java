@@ -43,7 +43,7 @@ public class ServerRequestHandler {
         return portResponse;
     }
 
-    public File filePathOption() {
+    public String filePathOption() {
         OptionParser parser = new OptionParser();
         OptionSpec<String> filePathSpec = parser.accepts("d", "Specifies the directory that the server " +
                 "will use to read/write requested files. Default is the current directory " +
@@ -53,11 +53,11 @@ public class ServerRequestHandler {
         parser.allowsUnrecognizedOptions();
         OptionSet filePathResponseOption = parser.parse(args);
 
-        File filePathResponse = null;
+        String filePathResponse = null;
         if(filePathResponseOption.has("d")){
-            filePathResponse = new File("./data" + filePathResponseOption.valueOf(filePathSpec).replaceAll("[\"']", ""));
+            filePathResponse = "data" + filePathResponseOption.valueOf(filePathSpec).replaceAll("[\"']", "");
         }else{
-            filePathResponse = new File("./data/");
+            filePathResponse = "data/";
         }
         return filePathResponse;
     }
