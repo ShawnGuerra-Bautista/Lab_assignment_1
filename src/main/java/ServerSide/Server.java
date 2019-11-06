@@ -127,8 +127,13 @@ public class Server {
                     requestStatus[1] = "List of Files:\n" + listFilesInDirectory(filePath);
                     requestStatus[0] = statusCodes(200, "HTTP/1.0");
                 }else{
-                    requestStatus[1] = "Content of file:\n" + readFile(filePath);
-                    requestStatus[0] = statusCodes(200, "HTTP/1.0");
+                    if(filePath.canRead()) {
+                        requestStatus[1] = "Content of file:\n" + readFile(filePath);
+                        requestStatus[0] = statusCodes(200, "HTTP/1.0");
+                    }else{
+                        requestStatus[0] = statusCodes(404, "HTTP/1.0");
+                        return requestStatus;
+                    }
                 }
 
             }else if(operationInfo[0].toLowerCase().equals("post")){
@@ -143,7 +148,7 @@ public class Server {
                     }else{
                         requestStatus[0] = statusCodes(403, "HTTP/1.0");
                     }
-                }else if(filePath.exists() && !filePath.isDirectory()){
+                }else if(filePath.exists() && !filePath.isDirectory() && !filePath.canWrite()){
                     writeFile(filePath, body);
                     requestStatus[0] = statusCodes(200, "HTTP/1.0");
                 }else{
