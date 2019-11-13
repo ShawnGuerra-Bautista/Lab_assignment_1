@@ -74,7 +74,6 @@ public class GETRequest extends Request {
         }
 
         String request = "GET " + path + " HTTP/1.0\r\n" +
-                            "Host: " + host + ":" + port + "\r\n" +
                             "User-Agent: Mozilla/5.0 (X11; Linux x86_64)\r\n" +
                             headers +
                             "Connection: close\r\n" +

@@ -4,8 +4,6 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
-import java.io.File;
-
 public class ServerRequestHandler {
     private String[] args;
 
