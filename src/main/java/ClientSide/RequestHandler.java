@@ -17,10 +17,10 @@ public class RequestHandler {
             Help help = new Help(args);
             help.executeHelp();
         }else if(args[0].equals("get")) {
-            GETRequest getRequest = new GETRequest(args);
+            MethodRequest getRequest = new MethodRequest(args, "GET");
             getRequest.execute();
         }else if(args[0].equals("post")) {
-            POSTRequest postRequest = new POSTRequest(args);
+            MethodRequest postRequest = new MethodRequest(args, "POST");
             postRequest.execute();
         }else {
             System.out.println("Invalid Command.");
