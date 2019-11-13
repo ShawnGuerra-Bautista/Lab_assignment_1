@@ -33,7 +33,9 @@ public class MethodRequest extends Request{
         try {
             URL url = new URL(rawUrl);
             host = url.getHost();
-            port = url.getPort();
+            if((port = url.getPort()) == -1){
+                port = url.getDefaultPort();
+            }
             location = url.getPath();
 
             //A 'do-while' loop is present in order to cover the case where a redirection is needed
