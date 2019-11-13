@@ -1,40 +1,62 @@
 package ServerSide;
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 
 public class Server {
     private boolean isDebugMessage;
-    private int portNumber;
     private String filePathName;
+    private int udpPortNumber = 3000;
+    private byte[] buffer = new byte[256];
+    private boolean running;
 
-    public Server(boolean isDebugMessage, int portNumber, String filePathName){
+    public Server(boolean isDebugMessage, String filePathName, int udpPortNumber, byte[] buffer, boolean running) {
         this.isDebugMessage = isDebugMessage;
-        this.portNumber = portNumber;
         this.filePathName = filePathName;
+        this.udpPortNumber = udpPortNumber;
+        this.buffer = buffer;
+        this.running = running;
+    }
+
+    public Server(boolean isDebugMessage, int udpPortNumber, String filePathName, boolean running){
+        this.isDebugMessage = isDebugMessage;
+        this.udpPortNumber = udpPortNumber;
+        this.filePathName = filePathName;
+        this.running = running;
     }
 
     public void run(){
 
-        ServerSocket server = null;
+        DatagramSocket datagramSocket = null;
         try {
-            server = new ServerSocket(portNumber);
+            datagramSocket = new DatagramSocket(udpPortNumber);
         }catch(IOException e) {
             System.out.println(e);
         }
 
         if(isDebugMessage){
-            System.out.println("Starting connection on port: " + portNumber);
+            System.out.println("Starting connection on port: " + udpPortNumber);
         }
 
-        Socket clientSocket;
         while(true){
             try {
-                clientSocket = server.accept();
-                processRequest(clientSocket);
-                clientSocket.close();
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                datagramSocket.receive(packet);
+
+                InetAddress address = packet.getAddress();
+                int port = packet.getPort();
+                packet = new DatagramPacket(buffer, buffer.length, address, port);
+
+                String received = new String(packet.getData(), 0, packet.getLength());
+
+                if (received.equals("end")) {
+                    running = false;
+                    continue;
+                }
+                datagramSocket.send(packet);
+                datagramSocket.close();
+
             }catch(IOException e){
                 System.out.println(e);
             }
