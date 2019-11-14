@@ -12,8 +12,25 @@ import java.nio.ByteOrder;
  */
 public class Packet {
 
+    public enum PacketType {
+        DATA(0),
+        ACK(1),
+        SYN(2),
+        SYN_ACK(3),
+        NAK(4);
+
+        private final int type;
+        PacketType(int type) {
+            this.type = type;
+        }
+        int getType(){
+            return this.type;
+        }
+    }
+
     public static final int MIN_LEN = 11;
     public static final int MAX_LEN = 11 + 1024;
+    public static final int MAX_PAYLOAD = 1013;
 
     private final int type;
     private final long sequenceNumber;
