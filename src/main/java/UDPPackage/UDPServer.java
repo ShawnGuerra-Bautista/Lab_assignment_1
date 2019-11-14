@@ -17,7 +17,11 @@ import static java.util.Arrays.asList;
 
 public class UDPServer {
 
+    //Logger to log data
     private static final Logger logger = LoggerFactory.getLogger(UDPServer.class);
+
+    //Listening Port Number
+    private static final int portNumber = 8007;
 
     private void listenAndServe(int port) throws IOException {
 
@@ -56,14 +60,7 @@ public class UDPServer {
     }
 
     public static void main(String[] args) throws IOException {
-        OptionParser parser = new OptionParser();
-        parser.acceptsAll(asList("port", "p"), "Listening port")
-                .withOptionalArg()
-                .defaultsTo("8007");
-
-        OptionSet opts = parser.parse(args);
-        int port = Integer.parseInt((String) opts.valueOf("port"));
         UDPServer server = new UDPServer();
-        server.listenAndServe(port);
+        server.listenAndServe(portNumber);
     }
 }

@@ -21,6 +21,14 @@ public class UDPClient {
 
     private static final Logger logger = LoggerFactory.getLogger(UDPClient.class);
 
+    // Router address
+    private static final String routerHost = "localhost";
+    private static final int routerPort = 3000;
+
+    // Server address
+    private static final String serverHost = "localhost";
+    private static final int serverPort = 8007;
+
     private static void runClient(SocketAddress routerAddr, InetSocketAddress serverAddr) throws IOException {
         try(DatagramChannel channel = DatagramChannel.open()){
             String msg = "Hello World";
@@ -63,33 +71,6 @@ public class UDPClient {
     }
 
     public static void main(String[] args) throws IOException {
-        OptionParser parser = new OptionParser();
-        parser.accepts("router-host", "Router hostname")
-                .withOptionalArg()
-                .defaultsTo("localhost");
-
-        parser.accepts("router-port", "Router port number")
-                .withOptionalArg()
-                .defaultsTo("3000");
-
-        parser.accepts("server-host", "EchoServer hostname")
-                .withOptionalArg()
-                .defaultsTo("localhost");
-
-        parser.accepts("server-port", "EchoServer listening port")
-                .withOptionalArg()
-                .defaultsTo("8007");
-
-        OptionSet opts = parser.parse(args);
-
-        // Router address
-        String routerHost = (String) opts.valueOf("router-host");
-        int routerPort = Integer.parseInt((String) opts.valueOf("router-port"));
-
-        // Server address
-        String serverHost = (String) opts.valueOf("server-host");
-        int serverPort = Integer.parseInt((String) opts.valueOf("server-port"));
-
         SocketAddress routerAddress = new InetSocketAddress(routerHost, routerPort);
         InetSocketAddress serverAddress = new InetSocketAddress(serverHost, serverPort);
 
