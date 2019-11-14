@@ -11,7 +11,7 @@ import java.net.Socket;
 import java.net.URL;
 import java.util.Map;
 
-public class MethodRequest extends Request{
+public class Client extends Request{
     private String rawUrl;
     private String host;
     private int port;
@@ -19,7 +19,7 @@ public class MethodRequest extends Request{
     private String location;
     private String method;
 
-    public MethodRequest(String[] args, String method){
+    public Client(String[] args, String method){
         super(args);
         getURL();
         this.method = method;

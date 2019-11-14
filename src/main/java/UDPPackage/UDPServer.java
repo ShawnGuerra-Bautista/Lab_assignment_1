@@ -1,7 +1,5 @@
 package UDPPackage;
 
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +11,6 @@ import java.nio.ByteOrder;
 import java.nio.channels.DatagramChannel;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Arrays.asList;
 
 public class UDPServer {
 
