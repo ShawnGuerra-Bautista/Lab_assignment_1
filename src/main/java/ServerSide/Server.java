@@ -51,10 +51,6 @@ public class Server {
             BufferedReader requestReader = new BufferedReader(
                     new InputStreamReader(clientSocket.getInputStream()));
 
-            if(isDebugMessage){
-                System.out.println("Ready?: " + requestReader.ready());
-            }
-
             int currentCharacter = requestReader.read();
             do{
                 request.append((char)currentCharacter);
@@ -183,10 +179,6 @@ public class Server {
 
     //Creates the response
     public String responseOutput(String requestStatus, String header, String body){
-
-        if(isDebugMessage){
-            System.out.println("Header:\n" + header);
-        }
 
         if(requestStatus.contains("400") || requestStatus.contains("403") || requestStatus.contains("404")){
             return requestStatus;

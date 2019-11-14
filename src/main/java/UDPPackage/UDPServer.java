@@ -17,8 +17,13 @@ public class UDPServer {
     //Logger to log data
     private static final Logger logger = LoggerFactory.getLogger(UDPServer.class);
 
-    //Listening Port Number
-    private static final int portNumber = 8007;
+    // Router address
+    private static final String routerHost = "localhost";
+    private static final int routerPort = 3000;
+
+    // Server address
+    private static final String serverHost = "localhost";
+    private static final int serverPort = 8007;
 
     private void listenAndServe(int port) throws IOException {
 
@@ -58,6 +63,6 @@ public class UDPServer {
 
     public static void main(String[] args) throws IOException {
         UDPServer server = new UDPServer();
-        server.listenAndServe(portNumber);
+        server.listenAndServe(serverPort);
     }
 }
