@@ -13,7 +13,6 @@ public class Client extends Request{
     private String rawUrl;
     private String host;
     private int port;
-    private String status;
     private String location;
     private String method;
 
@@ -41,7 +40,6 @@ public class Client extends Request{
         //Create
         DatagramSocket clientSocket = null;
         DatagramSocket routerSocket = null;
-        InetSocketAddress serverAddress = new InetSocketAddress(serverHost, serverPort);
 
         //Creates DatagramSocket
         try {
@@ -65,22 +63,17 @@ public class Client extends Request{
         }
 
         try {
-            //A 'do-while' loop is present in order to cover the case where a redirection is needed
-            do {
-
-                //TODO: SEND PACKETS
-                sendRequest(requestWriter, location);
-                location = null;
-                //TODO: RECEIVE PACKETS
-                receiveResponse(responseReader);
-            }while(isRedirectionNeeded() && location != null);
+            String request = request(location);
+            sendPackets(routerSocket, request);
+            String payload = receivePayload(clientSocket);
+            receiveResponse(payload);
         } catch(Exception e){
             System.out.println(e);
         }
     }
 
     // Send HTTP request to web server
-    private void sendRequest(String path) throws Exception {
+    private String request(String path) throws Exception {
         Map<String, String> headersMap = headerOption();
         StringBuilder headers = new StringBuilder();
 
@@ -106,47 +99,45 @@ public class Client extends Request{
 
         if(method.equals("POST")){
             String requestBody = bodyOption();
-            requestWriter.write(requestHeader + requestBody);
+            return (requestHeader + requestBody);
         }else if(method.equals("GET")){
-            requestWriter.write(requestHeader);
+            return requestHeader;
+        }else{
+            return null;
         }
+    }
 
-        requestWriter.flush();
+    private void sendPackets(DatagramSocket routerSocket, String request){
+
+    }
+
+    private String receivePayload(DatagramSocket clientSocket){
+        return null;
     }
 
     //Receives the response from the server
-    private void receiveResponse() throws IOException {
+    private void receiveResponse(String payload) throws IOException {
         boolean verboseOption = verboseOption();
 
         StringBuilder response = new StringBuilder();
-        String currentLine;
+
+        String header = "";
+        String body = "";
+
+        String[] headerAndBody = payload.split("\r\n\r\n");
+        header = headerAndBody[0];
+        if(headerAndBody.length > 1){
+            body = headerAndBody[1];
+        }
+
+        response.append(header).append(body);
 
         //If verbose, print everything
         //Else, ignore the verbose until the body is reached, then print the body
         if(verboseOption){
-            status = responseReader.readLine();
-            response.append(status).append("\n");
-            while ((currentLine = responseReader.readLine()) != null && !(currentLine .equals(""))){
-                if(currentLine.toLowerCase().contains("location")){
-                    location = currentLine.substring(currentLine.indexOf(":") + 1).replaceAll("\\s+","");
-                }
-                response.append(currentLine).append("\n");
-            }
-            response.append("\n");
-            while ((currentLine = responseReader.readLine()) != null) {
-                response.append(currentLine).append("\n");
-            }
+            response.append(header).append(body);
         }else{
-            status = responseReader.readLine();
-            while ((currentLine = responseReader.readLine()) != null && !(currentLine .equals(""))){
-                if(currentLine.toLowerCase().contains("location")){
-                    location = currentLine.substring(currentLine.indexOf(":") + 1).replaceAll("\\s+","");
-                }
-            }
-            response.append("\n");
-            while ((currentLine = responseReader.readLine()) != null) {
-                response.append(currentLine).append("\n");
-            }
+            response.append(body);
         }
 
         //If the file response option (-o) is present, then output the response in that file
@@ -195,11 +186,6 @@ public class Client extends Request{
             }
         }
         return body.toString();
-    }
-
-    //Checks if the status of the response is a 3xx for redirection
-    private boolean isRedirectionNeeded(){
-        return status.contains("300") || status.contains("301") || status.contains("302") || status.contains("304");
     }
 
     //Gets the URL of the server that will receive the request
