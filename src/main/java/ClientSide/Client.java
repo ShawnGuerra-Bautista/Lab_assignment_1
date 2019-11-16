@@ -5,18 +5,29 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.util.Map;
 
 public class Client extends Request{
+
     private String rawUrl;
     private String host;
     private int port;
     private String status;
     private String location;
     private String method;
+
+    // Router address
+    private static final String routerHost = "localhost";
+    private static final int routerPort = 3000;
+
+    // Server address
+    private static final String serverHost = "localhost";
+    private static final int serverPort = 8007;
+
+    // Client Address
+    private static final String clientHost = "localhost";
+    private static final int clientPort = 41830;
 
     public Client(String[] args, String method){
         super(args);
@@ -26,44 +37,50 @@ public class Client extends Request{
 
     //Sends a POST request to the server
     public void execute() {
-        InetAddress inetAddress = null;
-        Socket serviceSocket = null;
 
+        //Create
+        DatagramSocket clientSocket = null;
+        DatagramSocket routerSocket = null;
+        InetSocketAddress serverAddress = new InetSocketAddress(serverHost, serverPort);
+
+        //Creates DatagramSocket
         try {
+            clientSocket = new DatagramSocket(clientPort);
+            routerSocket = new DatagramSocket(routerPort);
+        }catch(IOException e) {
+            System.out.println(e);
+        }
+
+        //Gets URL information (Not really needed)
+        try {
+            //URL info of the server
             URL url = new URL(rawUrl);
             host = url.getHost();
             if((port = url.getPort()) == -1){
                 port = url.getDefaultPort();
             }
             location = url.getPath();
+        }catch(MalformedURLException e) {
+            System.out.println(e);
+        }
 
+        try {
             //A 'do-while' loop is present in order to cover the case where a redirection is needed
             do {
-                inetAddress = InetAddress.getByName(host);
-                serviceSocket = new Socket(inetAddress, port);
 
-                BufferedWriter requestWriter = new BufferedWriter(
-                        new OutputStreamWriter(serviceSocket.getOutputStream(), "UTF-8"));
-                BufferedReader responseReader = new BufferedReader(
-                        new InputStreamReader(serviceSocket.getInputStream()));
+                //TODO: SEND PACKETS
                 sendRequest(requestWriter, location);
                 location = null;
+                //TODO: RECEIVE PACKETS
                 receiveResponse(responseReader);
-                requestWriter.close();
-                responseReader.close();
             }while(isRedirectionNeeded() && location != null);
-
-        } catch(MalformedURLException e){
-            System.out.println(e);
-        } catch(IOException e) {
-            System.out.println(e);
         } catch(Exception e){
             System.out.println(e);
         }
     }
 
     // Send HTTP request to web server
-    private void sendRequest(BufferedWriter requestWriter, String path) throws IOException, Exception {
+    private void sendRequest(String path) throws Exception {
         Map<String, String> headersMap = headerOption();
         StringBuilder headers = new StringBuilder();
 
@@ -98,7 +115,7 @@ public class Client extends Request{
     }
 
     //Receives the response from the server
-    private void receiveResponse(BufferedReader responseReader) throws IOException {
+    private void receiveResponse() throws IOException {
         boolean verboseOption = verboseOption();
 
         StringBuilder response = new StringBuilder();

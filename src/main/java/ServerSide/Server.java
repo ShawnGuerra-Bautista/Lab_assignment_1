@@ -7,7 +7,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -24,6 +23,10 @@ public class Server {
     private static final String serverHost = "localhost";
     private static final int serverPort = 8007;
 
+    // Client Address
+    private static final String clientHost = "localhost";
+    private static final int clientPort = 41830;
+
     public Server(boolean isDebugMessage, int portNumber, String filePathName){
         this.isDebugMessage = isDebugMessage;
         this.portNumber = portNumber;
@@ -34,11 +37,13 @@ public class Server {
     public void run(){
 
         DatagramSocket serverSocket = null;
+        DatagramSocket routerSocket = null;
         ByteBuffer receivingBytesBuffer = ByteBuffer
                 .allocate(Packet.MAX_LEN)
                 .order(ByteOrder.BIG_ENDIAN);
         try {
             serverSocket = new DatagramSocket(serverPort);
+            routerSocket = new DatagramSocket(routerPort);
         }catch(IOException e) {
             System.out.println(e);
         }
@@ -71,9 +76,10 @@ public class Server {
                 Packet response = receivedPacket.toBuilder()
                         .setPayload(payload.getBytes())
                         .create();
+                //Sending Datagram packets should have the Address and port number of receiver
                 DatagramPacket sendingDatagramPacket = new DatagramPacket(response.toBytes(),
                         response.toBytes().length);
-                serverSocket.send(sendingDatagramPacket);
+                routerSocket.send(sendingDatagramPacket);
             }catch(IOException e){
                 System.out.println(e);
             }
