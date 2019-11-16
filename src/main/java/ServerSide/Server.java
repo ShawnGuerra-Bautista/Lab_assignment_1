@@ -93,9 +93,11 @@ public class Server {
     //Locates & creates/overwrite files
     public String[] executingRequest(String header, String body) {
 
-        String[] requestStatus = new String[3];
+        //Changed from 3 to 2
+        String[] requestStatus = new String[2];
         requestStatus[1] = null;
         String[] separatedHeader = header.split("\r\n");
+
         // 1 = path; 0 = post/get; 2 = version
         String[] operationInfo = separatedHeader[0].split(" ");
 
@@ -235,7 +237,7 @@ public class Server {
 
     }
 
-    //List of a ll status codes
+    //List of status codes
     private String statusCodes(int code, String httpVersion){
         String status = "";
         switch(code){
