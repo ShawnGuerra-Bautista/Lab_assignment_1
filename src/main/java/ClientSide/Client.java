@@ -7,7 +7,6 @@ import joptsimple.OptionSpec;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
-import java.net.Socket;
 import java.net.URL;
 import java.util.Map;
 

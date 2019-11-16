@@ -1,14 +1,28 @@
 package ServerSide;
 
+import UDPPackage.Packet;
+
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class Server {
     private boolean isDebugMessage;
     private int portNumber;
     private String filePathName;
+
+    // Router address
+    private static final String routerHost = "localhost";
+    private static final int routerPort = 3000;
+
+    // Server address
+    private static final String serverHost = "localhost";
+    private static final int serverPort = 8007;
 
     public Server(boolean isDebugMessage, int portNumber, String filePathName){
         this.isDebugMessage = isDebugMessage;
@@ -16,11 +30,15 @@ public class Server {
         this.filePathName = filePathName;
     }
 
+    //Listen and serve
     public void run(){
 
-        ServerSocket server = null;
+        DatagramSocket serverSocket = null;
+        ByteBuffer receivingBytesBuffer = ByteBuffer
+                .allocate(Packet.MAX_LEN)
+                .order(ByteOrder.BIG_ENDIAN);
         try {
-            server = new ServerSocket(portNumber);
+            serverSocket = new DatagramSocket(serverPort);
         }catch(IOException e) {
             System.out.println(e);
         }
@@ -29,12 +47,33 @@ public class Server {
             System.out.println("Starting connection on port: " + portNumber);
         }
 
-        Socket clientSocket;
+        DatagramPacket receivingDatagramPacket = null;
+
         while(true){
             try {
-                clientSocket = server.accept();
-                processRequest(clientSocket);
-                clientSocket.close();
+                //Receiving the packet
+                receivingBytesBuffer.clear();
+                receivingDatagramPacket = new DatagramPacket(receivingBytesBuffer.array(),
+                        receivingBytesBuffer.array().length);
+                assert serverSocket != null;
+                serverSocket.receive(receivingDatagramPacket);
+
+                //Parse the packet
+                receivingBytesBuffer.flip();
+                Packet receivedPacket = Packet.fromBuffer(receivingBytesBuffer);
+                receivingBytesBuffer.flip();
+
+                //Get Payload and process request
+                String payload = new String(receivedPacket.getPayload(), UTF_8);
+                processRequest(payload);
+
+                //To send a packet to the client just do this: (This echoes request)
+                Packet response = receivedPacket.toBuilder()
+                        .setPayload(payload.getBytes())
+                        .create();
+                DatagramPacket sendingDatagramPacket = new DatagramPacket(response.toBytes(),
+                        response.toBytes().length);
+                serverSocket.send(sendingDatagramPacket);
             }catch(IOException e){
                 System.out.println(e);
             }
@@ -42,52 +81,38 @@ public class Server {
     }
 
     //Reads the request
-    public void processRequest(Socket clientSocket) {
+    public void processRequest(String payload) {
 
-        StringBuilder request = new StringBuilder();
         String header = "";
         String body = "";
-        try {
-            BufferedReader requestReader = new BufferedReader(
-                    new InputStreamReader(clientSocket.getInputStream()));
-
-            int currentCharacter = requestReader.read();
-            do{
-                request.append((char)currentCharacter);
-            }while(requestReader.ready() && (currentCharacter = requestReader.read()) != -1);
-
-            if(isDebugMessage){
-                System.out.println("Request content:\n" + request);
-            }
-
-            String[] headerAndBody = request.toString().split("\r\n\r\n");
-            header = headerAndBody[0];
-            if(headerAndBody.length > 1){
-                body = headerAndBody[1];
-            }
-
-            if(isDebugMessage){
-                System.out.println("Header:\n" + header);
-                System.out.println("Body:\n" + body);
-            }
-
-            String[] requestStatus = executingRequest(header, body);
-
-            if(isDebugMessage){
-                System.out.println("Request Status:\n" + requestStatus[0]);
-                System.out.println("Request result:\n" + requestStatus[1]);
-            }
-
-            if(requestStatus[1] != null){
-                body = requestStatus[1];
-            }
-
-            processResponse(clientSocket, requestStatus[0], header, body);
-
-            requestReader.close();
-        } catch (IOException e) {
-            System.out.println(e);
+        if(isDebugMessage){
+            System.out.println("Request content:\n" + payload);
         }
+
+        String[] headerAndBody = payload.split("\r\n\r\n");
+        header = headerAndBody[0];
+        if(headerAndBody.length > 1){
+            body = headerAndBody[1];
+        }
+
+        if(isDebugMessage){
+            System.out.println("Header:\n" + header);
+            System.out.println("Body:\n" + body);
+        }
+
+        String[] requestStatus = executingRequest(header, body);
+
+        if(isDebugMessage){
+            System.out.println("Request Status:\n" + requestStatus[0]);
+            System.out.println("Request result:\n" + requestStatus[1]);
+        }
+
+        if(requestStatus[1] != null){
+            body = requestStatus[1];
+        }
+
+        processResponse(requestStatus[0], header, body);
+
     }
 
     //Locates & creates/overwrite files
@@ -163,20 +188,9 @@ public class Server {
         return requestStatus;
     }
 
-    //Use the printwriter to output a response
-    public void processResponse(Socket clientSocket, String requestStatus, String header, String body){
-        try {
-            BufferedWriter responseWriter = new BufferedWriter(
-                    new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
-
-            String response = responseOutput(requestStatus, header, body);
-
-            responseWriter.write(response);
-            responseWriter.flush();
-            responseWriter.close();
-        }catch(IOException e){
-            System.out.println(e);
-        }
+    //Generates response
+    public void processResponse(String requestStatus, String header, String body){
+        String response = responseOutput(requestStatus, header, body);
     }
 
     //Creates the response

@@ -33,7 +33,7 @@ public class ServerRequestHandler {
         parser.allowsUnrecognizedOptions();
         OptionSet portResponseOption = parser.parse(args);
 
-        Integer portResponse = 8080;
+        Integer portResponse = 8007;
 
         if(portResponseOption.has("p")){
             portResponse = portResponseOption.valueOf(portSpec);
