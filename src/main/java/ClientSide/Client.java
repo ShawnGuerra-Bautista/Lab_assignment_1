@@ -145,9 +145,12 @@ public class Client extends Request{
                     receivingBytesBuffer.array().length);
             assert clientSocket != null;
             clientSocket.receive(receivingDatagramPacket);
+            receivingBytesBuffer.position(receivingDatagramPacket.getLength());
 
             //Parse the packet
+            receivingBytesBuffer.flip();
             Packet receivedPacket = Packet.fromBuffer(receivingBytesBuffer);
+            receivingBytesBuffer.flip();
 
             //Get Payload and process request
             payload = new String(receivedPacket.getPayload(), UTF_8);
@@ -175,7 +178,7 @@ public class Client extends Request{
         //If verbose, print everything
         //Else, ignore the verbose until the body is reached, then print the body
         if(verboseOption){
-            response.append(header).append(body);
+            response.append(header).append("\r\n\r\n").append(body);
         }else{
             response.append(body);
         }

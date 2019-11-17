@@ -62,9 +62,12 @@ public class Server {
                         receivingBytesBuffer.array().length);
 
                 serverSocket.receive(receivingDatagramPacket);
+                receivingBytesBuffer.position(receivingDatagramPacket.getLength());
 
                 //Parse the packet
-                Packet receivedPacket = Packet.fromBytes(receivingBytesBuffer.array());
+                receivingBytesBuffer.flip();
+                Packet receivedPacket = Packet.fromBuffer(receivingBytesBuffer);
+                receivingBytesBuffer.flip();
 
                 //Get Payload and process request
                 String payload = new String(receivedPacket.getPayload(), UTF_8);
