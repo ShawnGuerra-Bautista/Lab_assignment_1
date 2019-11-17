@@ -65,6 +65,7 @@ public class UDPClient {
             logger.info("Payload: {}",  payload);
 
             keys.clear();
+            channel.close();
         }
     }
 

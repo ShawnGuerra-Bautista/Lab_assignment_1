@@ -5,6 +5,8 @@ import UDPPackage.Packet;
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -37,13 +39,12 @@ public class Server {
     public void run(){
 
         DatagramSocket serverSocket = null;
-        DatagramSocket routerSocket = null;
+        SocketAddress routerAddress = new InetSocketAddress(routerHost, routerPort);
         ByteBuffer receivingBytesBuffer = ByteBuffer
                 .allocate(Packet.MAX_LEN)
                 .order(ByteOrder.BIG_ENDIAN);
         try {
             serverSocket = new DatagramSocket(serverPort);
-            routerSocket = new DatagramSocket(routerPort);
         }catch(IOException e) {
             System.out.println(e);
         }
@@ -53,20 +54,17 @@ public class Server {
         }
 
         DatagramPacket receivingDatagramPacket = null;
-
-        while(true){
-            try {
+        try {
+            while(true) {
                 //Receiving the packet
                 receivingBytesBuffer.clear();
                 receivingDatagramPacket = new DatagramPacket(receivingBytesBuffer.array(),
                         receivingBytesBuffer.array().length);
-                assert serverSocket != null;
+
                 serverSocket.receive(receivingDatagramPacket);
 
                 //Parse the packet
-                receivingBytesBuffer.flip();
-                Packet receivedPacket = Packet.fromBuffer(receivingBytesBuffer);
-                receivingBytesBuffer.flip();
+                Packet receivedPacket = Packet.fromBytes(receivingBytesBuffer.array());
 
                 //Get Payload and process request
                 String payload = new String(receivedPacket.getPayload(), UTF_8);
@@ -79,12 +77,13 @@ public class Server {
 
                 //Sending Datagram packets should have the Address and port number of receiver
                 DatagramPacket sendingDatagramPacket = new DatagramPacket(response.toBytes(),
-                        response.toBytes().length);
-                assert routerSocket != null;
-                routerSocket.send(sendingDatagramPacket);
-            }catch(IOException e){
-                System.out.println(e);
+                        response.toBytes().length, routerAddress);
+                serverSocket.send(sendingDatagramPacket);
             }
+        }catch(IOException e){
+            System.out.println(e);
+        }finally {
+            serverSocket.close();
         }
     }
 

@@ -42,14 +42,11 @@ public class Client extends Request{
     //Sends a POST request to the server
     public void execute() {
 
-        //Create
+        //Create datagram socket
         DatagramSocket clientSocket = null;
-        DatagramSocket routerSocket = null;
-
-        //Creates DatagramSocket
+        SocketAddress routerAddress = new InetSocketAddress(routerHost, routerPort);
         try {
             clientSocket = new DatagramSocket(clientPort);
-            routerSocket = new DatagramSocket(routerPort);
         }catch(IOException e) {
             System.out.println(e);
         }
@@ -70,11 +67,13 @@ public class Client extends Request{
         //Send requests and receives response
         try {
             String request = request(location);
-            sendPackets(routerSocket, request);
+            sendPackets(clientSocket, routerAddress, request);
             String payload = receivePayload(clientSocket);
             receiveResponse(payload);
         } catch(Exception e){
             System.out.println(e);
+        }finally{
+            clientSocket.close();
         }
     }
 
@@ -98,9 +97,9 @@ public class Client extends Request{
         }
 
         String requestHeader = method + " " + path + " HTTP/1.0\r\n" +
-                "User-Agent: Mozilla/5.0 (X11; Linux x86_64)\r\n" +
+               "User-Agent: Mozilla/5.0 (X11; Linux x86_64)\r\n" +
                 headers +
-                "Connection: close\r\n" +
+               "Connection: close\r\n" +
                 "\r\n";
 
         if(method.equals("POST")){
@@ -113,19 +112,20 @@ public class Client extends Request{
         }
     }
 
-    private void sendPackets(DatagramSocket routerSocket, String request){
+    private void sendPackets(DatagramSocket clientSocket, SocketAddress routerAddr, String request){
         try {
             InetSocketAddress serverAddr = new InetSocketAddress(serverHost, serverPort);
             Packet requestPacket = new Packet.Builder()
-                    .setType(Packet.DATA)
+                    .setType(0)
                     .setSequenceNumber(1L)
                     .setPortNumber(serverAddr.getPort())
                     .setPeerAddress(serverAddr.getAddress())
                     .setPayload(request.getBytes())
                     .create();
             DatagramPacket datagramPacketSend = new DatagramPacket(requestPacket.toBytes(),
-                    requestPacket.toBytes().length);
-            routerSocket.send(datagramPacketSend);
+                    requestPacket.toBytes().length, routerAddr);
+            System.out.println("Sending: " + request);
+            clientSocket.send(datagramPacketSend);
         }catch(Exception e){
             System.out.println(e);
         }
@@ -145,11 +145,9 @@ public class Client extends Request{
                     receivingBytesBuffer.array().length);
             assert clientSocket != null;
             clientSocket.receive(receivingDatagramPacket);
-            
+
             //Parse the packet
-            receivingBytesBuffer.flip();
             Packet receivedPacket = Packet.fromBuffer(receivingBytesBuffer);
-            receivingBytesBuffer.flip();
 
             //Get Payload and process request
             payload = new String(receivedPacket.getPayload(), UTF_8);

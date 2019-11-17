@@ -56,7 +56,7 @@ public class UDPServer {
                         .setPayload(payload.getBytes())
                         .create();
                 channel.send(resp.toBuffer(), router);
-
+                channel.close();
             }
         }
     }
