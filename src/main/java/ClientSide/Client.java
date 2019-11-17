@@ -1,12 +1,17 @@
 package ClientSide;
 
+import UDPPackage.Packet;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Map;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class Client extends Request{
 
@@ -62,6 +67,7 @@ public class Client extends Request{
             System.out.println(e);
         }
 
+        //Send requests and receives response
         try {
             String request = request(location);
             sendPackets(routerSocket, request);
@@ -108,11 +114,49 @@ public class Client extends Request{
     }
 
     private void sendPackets(DatagramSocket routerSocket, String request){
-
+        try {
+            InetSocketAddress serverAddr = new InetSocketAddress(serverHost, serverPort);
+            Packet requestPacket = new Packet.Builder()
+                    .setType(Packet.DATA)
+                    .setSequenceNumber(1L)
+                    .setPortNumber(serverAddr.getPort())
+                    .setPeerAddress(serverAddr.getAddress())
+                    .setPayload(request.getBytes())
+                    .create();
+            DatagramPacket datagramPacketSend = new DatagramPacket(requestPacket.toBytes(),
+                    requestPacket.toBytes().length);
+            routerSocket.send(datagramPacketSend);
+        }catch(Exception e){
+            System.out.println(e);
+        }
     }
 
     private String receivePayload(DatagramSocket clientSocket){
-        return null;
+        ByteBuffer receivingBytesBuffer = ByteBuffer
+                .allocate(Packet.MAX_LEN)
+                .order(ByteOrder.BIG_ENDIAN);
+        DatagramPacket receivingDatagramPacket = null;
+
+        String payload = null;
+        try {
+            //Receive Packet
+            receivingBytesBuffer.clear();
+            receivingDatagramPacket = new DatagramPacket(receivingBytesBuffer.array(),
+                    receivingBytesBuffer.array().length);
+            assert clientSocket != null;
+            clientSocket.receive(receivingDatagramPacket);
+            
+            //Parse the packet
+            receivingBytesBuffer.flip();
+            Packet receivedPacket = Packet.fromBuffer(receivingBytesBuffer);
+            receivingBytesBuffer.flip();
+
+            //Get Payload and process request
+            payload = new String(receivedPacket.getPayload(), UTF_8);
+        }catch(Exception e){
+            System.out.println(e);
+        }
+        return payload;
     }
 
     //Receives the response from the server
@@ -129,8 +173,6 @@ public class Client extends Request{
         if(headerAndBody.length > 1){
             body = headerAndBody[1];
         }
-
-        response.append(header).append(body);
 
         //If verbose, print everything
         //Else, ignore the verbose until the body is reached, then print the body
@@ -177,10 +219,6 @@ public class Client extends Request{
                 while ((currentLine = fileReader.readLine()) != null) {
                     body.append(currentLine);
                 }
-            }catch (FileNotFoundException e){
-                System.out.println(e);
-            }catch (IOException e){
-                System.out.println(e);
             }catch (Exception e){
                 System.out.println(e);
             }

@@ -76,9 +76,11 @@ public class Server {
                 Packet response = receivedPacket.toBuilder()
                         .setPayload(payload.getBytes())
                         .create();
+
                 //Sending Datagram packets should have the Address and port number of receiver
                 DatagramPacket sendingDatagramPacket = new DatagramPacket(response.toBytes(),
                         response.toBytes().length);
+                assert routerSocket != null;
                 routerSocket.send(sendingDatagramPacket);
             }catch(IOException e){
                 System.out.println(e);
