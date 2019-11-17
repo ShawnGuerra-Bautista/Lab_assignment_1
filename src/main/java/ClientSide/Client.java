@@ -44,7 +44,6 @@ public class Client extends Request{
 
         //Create datagram socket
         DatagramSocket clientSocket = null;
-        SocketAddress routerAddress = new InetSocketAddress(routerHost, routerPort);
         try {
             clientSocket = new DatagramSocket(clientPort);
         }catch(IOException e) {
@@ -67,9 +66,9 @@ public class Client extends Request{
         //Send requests and receives response
         try {
             String request = request(location);
-            sendPackets(clientSocket, routerAddress, request);
-            String payload = receivePayload(clientSocket);
-            receiveResponse(payload);
+            sendPackets(clientSocket, request);
+            String response = receivePackets(clientSocket);
+            receiveResponse(response);
         } catch(Exception e){
             System.out.println(e);
         }finally{
@@ -112,9 +111,14 @@ public class Client extends Request{
         }
     }
 
-    private void sendPackets(DatagramSocket clientSocket, SocketAddress routerAddr, String request){
+    //Send packets
+    private void sendPackets(DatagramSocket clientSocket, String request){
         try {
+            // Create address for router and server to specify the destination and target to send
+            SocketAddress routerAddress = new InetSocketAddress(routerHost, routerPort);
             InetSocketAddress serverAddr = new InetSocketAddress(serverHost, serverPort);
+
+            // Create Packet(s) to send to the server
             Packet requestPacket = new Packet.Builder()
                     .setType(0)
                     .setSequenceNumber(1L)
@@ -122,22 +126,27 @@ public class Client extends Request{
                     .setPeerAddress(serverAddr.getAddress())
                     .setPayload(request.getBytes())
                     .create();
+
+            // Send the packets in byte[] through the client socket
             DatagramPacket datagramPacketSend = new DatagramPacket(requestPacket.toBytes(),
-                    requestPacket.toBytes().length, routerAddr);
-            System.out.println("Sending: " + request);
+                    requestPacket.toBytes().length, routerAddress);
             clientSocket.send(datagramPacketSend);
         }catch(Exception e){
             System.out.println(e);
         }
     }
 
-    private String receivePayload(DatagramSocket clientSocket){
+    // Receiving Packets
+    private String receivePackets(DatagramSocket clientSocket){
+        // Create a bytebuffer
         ByteBuffer receivingBytesBuffer = ByteBuffer
                 .allocate(Packet.MAX_LEN)
                 .order(ByteOrder.BIG_ENDIAN);
-        DatagramPacket receivingDatagramPacket = null;
 
+        //Create a Datagram packet
+        DatagramPacket receivingDatagramPacket = null;
         String payload = null;
+
         try {
             //Receive Packet
             receivingBytesBuffer.clear();
@@ -145,6 +154,8 @@ public class Client extends Request{
                     receivingBytesBuffer.array().length);
             assert clientSocket != null;
             clientSocket.receive(receivingDatagramPacket);
+
+            //Must specify the real length of the packet from the DatagramPacket
             receivingBytesBuffer.position(receivingDatagramPacket.getLength());
 
             //Parse the packet
@@ -160,7 +171,7 @@ public class Client extends Request{
         return payload;
     }
 
-    //Receives the response from the server
+    //From the packets receive the response
     private void receiveResponse(String payload) throws IOException {
         boolean verboseOption = verboseOption();
 

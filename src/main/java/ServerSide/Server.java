@@ -62,6 +62,8 @@ public class Server {
                         receivingBytesBuffer.array().length);
 
                 serverSocket.receive(receivingDatagramPacket);
+
+                //Must specify the real length of packet
                 receivingBytesBuffer.position(receivingDatagramPacket.getLength());
 
                 //Parse the packet
@@ -71,16 +73,16 @@ public class Server {
 
                 //Get Payload and process request
                 String payload = new String(receivedPacket.getPayload(), UTF_8);
-                processRequest(payload);
+                String response = processRequest(payload);
 
                 //To send a packet to the client just do this: (This echoes request)
-                Packet response = receivedPacket.toBuilder()
-                        .setPayload(payload.getBytes())
+                Packet responsePacket = receivedPacket.toBuilder()
+                        .setPayload(response.getBytes())
                         .create();
 
                 //Sending Datagram packets should have the Address and port number of receiver
-                DatagramPacket sendingDatagramPacket = new DatagramPacket(response.toBytes(),
-                        response.toBytes().length, routerAddress);
+                DatagramPacket sendingDatagramPacket = new DatagramPacket(responsePacket.toBytes(),
+                        responsePacket.toBytes().length, routerAddress);
                 serverSocket.send(sendingDatagramPacket);
             }
         }catch(IOException e){
@@ -91,7 +93,7 @@ public class Server {
     }
 
     //Reads the request
-    public void processRequest(String payload) {
+    public String processRequest(String payload) {
 
         String header = "";
         String body = "";
@@ -121,7 +123,7 @@ public class Server {
             body = requestStatus[1];
         }
 
-        processResponse(requestStatus[0], header, body);
+        return processResponse(requestStatus[0], header, body);
 
     }
 
@@ -199,8 +201,9 @@ public class Server {
     }
 
     //Generates response
-    public void processResponse(String requestStatus, String header, String body){
+    public String processResponse(String requestStatus, String header, String body){
         String response = responseOutput(requestStatus, header, body);
+        return response;
     }
 
     //Creates the response
