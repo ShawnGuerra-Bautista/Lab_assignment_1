@@ -301,7 +301,7 @@ public class Server {
         Packet ackPacket = Packet.fromBuffer(receivingBytesBuffer);
         receivingBytesBuffer.flip();
 
-        if(synPacket.getType() != Packet.ACK){
+        if(ackPacket.getType() != Packet.ACK){
             throw new Exception("Not an ack from client");
         }
 
