@@ -69,6 +69,7 @@ public class Client extends Request{
 
         //Send requests and receives response
         try {
+            threeWayHandshake(clientSocket, routerAddress, serverAddress);
             String request = request(location);
             sendPackets(clientSocket, routerAddress, serverAddress, request);
             String response = receivePackets(clientSocket);
@@ -153,7 +154,6 @@ public class Client extends Request{
             receivingBytesBuffer.clear();
             receivingDatagramPacket = new DatagramPacket(receivingBytesBuffer.array(),
                     receivingBytesBuffer.array().length);
-            assert clientSocket != null;
             clientSocket.receive(receivingDatagramPacket);
 
             //Must specify the real length of the packet from the DatagramPacket
@@ -179,8 +179,67 @@ public class Client extends Request{
         3. Send ACK (seq=y+1)
      */
     private void threeWayHandshake(DatagramSocket clientSocket, SocketAddress routerAddress,
-                                   InetSocketAddress serverAddress){
+                                   InetSocketAddress serverAddress) throws Exception {
 
+        String syn = "I want to connect.";
+        String ack = "I acknowledge your acknowledgement";
+
+        DatagramPacket receiveSynAckPacket = null;
+        ByteBuffer receivingBytesBuffer = ByteBuffer
+                .allocate(Packet.MAX_LEN)
+                .order(ByteOrder.BIG_ENDIAN);
+
+        //================================SEND=================================
+
+        // Create Packet(s) to send to the server
+        Packet synPacket = new Packet.Builder()
+                .setType(Packet.SYN)
+                .setSequenceNumber(1L)
+                .setPortNumber(serverAddress.getPort())
+                .setPeerAddress(serverAddress.getAddress())
+                .setPayload(syn.getBytes())
+                .create();
+
+        // Send the packets in byte[] through the client socket
+        DatagramPacket synDatagramPacket = new DatagramPacket(synPacket.toBytes(),
+                synPacket.toBytes().length, routerAddress);
+        clientSocket.send(synDatagramPacket);
+
+        //=============================RECEIVE=================================
+
+        //Receive SYN_ACK
+        receivingBytesBuffer.clear();
+        receiveSynAckPacket = new DatagramPacket(receivingBytesBuffer.array(),
+                receivingBytesBuffer.array().length);
+        clientSocket.receive(receiveSynAckPacket);
+
+        //Must specify the real length of the packet from the DatagramPacket
+        receivingBytesBuffer.position(receiveSynAckPacket.getLength());
+
+        //Parse the packet
+        receivingBytesBuffer.flip();
+        Packet ackSynPacket = Packet.fromBuffer(receivingBytesBuffer);
+        receivingBytesBuffer.flip();
+
+        if(ackSynPacket.getType() != Packet.SYN_ACK){
+            throw new Exception("Not an acknowledgement from server");
+        }
+
+        System.out.println(new String(ackSynPacket.getPayload(), UTF_8));
+
+        //=============================SEND=================================
+
+        // Create Packet(s) to send to the server
+        Packet ackPacket = ackSynPacket.toBuilder()
+                .setType(Packet.ACK)
+                .setSequenceNumber(1L)
+                .setPayload(ack.getBytes())
+                .create();
+
+        // Send the packets in byte[] through the client socket
+        DatagramPacket ackDatagramPacket = new DatagramPacket(ackPacket.toBytes(),
+                ackPacket.toBytes().length, routerAddress);
+        clientSocket.send(ackDatagramPacket);
     }
 
     //From the packets receive the response

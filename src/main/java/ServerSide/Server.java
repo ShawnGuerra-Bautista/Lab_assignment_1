@@ -56,11 +56,14 @@ public class Server {
         DatagramPacket receivingDatagramPacket = null;
         try {
             while(true) {
+
+                //Handshake
+                threeWayHandshake(serverSocket, routerAddress);
+
                 //Receiving the packet
                 receivingBytesBuffer.clear();
                 receivingDatagramPacket = new DatagramPacket(receivingBytesBuffer.array(),
                         receivingBytesBuffer.array().length);
-
                 serverSocket.receive(receivingDatagramPacket);
 
                 //Must specify the real length of packet
@@ -85,7 +88,7 @@ public class Server {
                         responsePacket.toBytes().length, routerAddress);
                 serverSocket.send(sendingDatagramPacket);
             }
-        }catch(IOException e){
+        }catch(Exception e){
             System.out.println(e);
         }finally {
             serverSocket.close();
@@ -227,9 +230,82 @@ public class Server {
     }
 
     // 3-way handshake
-    private void threeWayHandshake(DatagramSocket serverSocket, SocketAddress routerAddress,
-                                   InetSocketAddress serverAddress){
+    /*
+        1. Receive SYN (seq = x)
+        2. Send SYN_ACK (seq = x+1)
+        3. Receive ACK (seq=y+1)
+     */
+    private void threeWayHandshake(DatagramSocket serverSocket, SocketAddress routerAddress) throws Exception{
 
+        String synAck = "I acknowledge";
+
+        DatagramPacket receiveAckPacket = null;
+        DatagramPacket receiveSynPacket = null;
+        ByteBuffer receivingBytesBuffer = ByteBuffer
+                .allocate(Packet.MAX_LEN)
+                .order(ByteOrder.BIG_ENDIAN);
+
+        //================================RECEIVE=================================
+
+        //Receive SYN
+        receivingBytesBuffer.clear();
+        receiveSynPacket = new DatagramPacket(receivingBytesBuffer.array(),
+                receivingBytesBuffer.array().length);
+        serverSocket.receive(receiveSynPacket);
+
+        //Must specify the real length of the packet from the DatagramPacket
+        receivingBytesBuffer.position(receiveSynPacket.getLength());
+
+        //Parse the packet
+        receivingBytesBuffer.flip();
+        Packet synPacket = Packet.fromBuffer(receivingBytesBuffer);
+        receivingBytesBuffer.flip();
+
+        if(synPacket.getType() != Packet.SYN){
+            throw new Exception("Not a syn from client");
+        }
+
+        System.out.println(new String(synPacket.getPayload(), UTF_8));
+
+        //=============================SEND=================================
+
+        // Create Packet(s) to send to the server
+        Packet synAckPacket = synPacket.toBuilder()
+                .setType(Packet.SYN_ACK)
+                .setSequenceNumber(synPacket.getSequenceNumber() + 1L)
+                .setPayload(synAck.getBytes())
+                .create();
+
+        // Send the packets in byte[] through the client socket
+        DatagramPacket synAckDatagramPacket = new DatagramPacket(synAckPacket.toBytes(),
+                synAckPacket.toBytes().length, routerAddress);
+        serverSocket.send(synAckDatagramPacket);
+
+        //=============================RECEIVE=================================
+
+        //New bytesBuffer
+        receivingBytesBuffer = ByteBuffer
+                .allocate(Packet.MAX_LEN)
+                .order(ByteOrder.BIG_ENDIAN);
+
+        receivingBytesBuffer.clear();
+        receiveAckPacket = new DatagramPacket(receivingBytesBuffer.array(),
+                receivingBytesBuffer.array().length);
+        serverSocket.receive(receiveAckPacket);
+
+        //Must specify the real length of the packet from the DatagramPacket
+        receivingBytesBuffer.position(receiveAckPacket.getLength());
+
+        //Parse the packet
+        receivingBytesBuffer.flip();
+        Packet ackPacket = Packet.fromBuffer(receivingBytesBuffer);
+        receivingBytesBuffer.flip();
+
+        if(synPacket.getType() != Packet.ACK){
+            throw new Exception("Not an ack from client");
+        }
+
+        System.out.println(new String(ackPacket.getPayload(), UTF_8));
     }
 
     //List all the files if it is a directory
