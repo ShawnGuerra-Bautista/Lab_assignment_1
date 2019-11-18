@@ -226,6 +226,12 @@ public class Server {
         }
     }
 
+    // 3-way handshake
+    private void threeWayHandshake(DatagramSocket serverSocket, SocketAddress routerAddress,
+                                   InetSocketAddress serverAddress){
+
+    }
+
     //List all the files if it is a directory
     public String listFilesInDirectory(File filePath){
         File[] listOfFilesArray = filePath.listFiles();

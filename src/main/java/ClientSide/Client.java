@@ -42,6 +42,10 @@ public class Client extends Request{
     //Sends a POST request to the server
     public void execute() {
 
+        // Create address for router and server to specify the destination and target to send
+        SocketAddress routerAddress = new InetSocketAddress(routerHost, routerPort);
+        InetSocketAddress serverAddress = new InetSocketAddress(serverHost, serverPort);
+
         //Create datagram socket
         DatagramSocket clientSocket = null;
         try {
@@ -66,7 +70,7 @@ public class Client extends Request{
         //Send requests and receives response
         try {
             String request = request(location);
-            sendPackets(clientSocket, request);
+            sendPackets(clientSocket, routerAddress, serverAddress, request);
             String response = receivePackets(clientSocket);
             receiveResponse(response);
         } catch(Exception e){
@@ -112,18 +116,15 @@ public class Client extends Request{
     }
 
     //Send packets
-    private void sendPackets(DatagramSocket clientSocket, String request){
+    private void sendPackets(DatagramSocket clientSocket, SocketAddress routerAddress,
+                             InetSocketAddress serverAddress, String request){
         try {
-            // Create address for router and server to specify the destination and target to send
-            SocketAddress routerAddress = new InetSocketAddress(routerHost, routerPort);
-            InetSocketAddress serverAddr = new InetSocketAddress(serverHost, serverPort);
-
             // Create Packet(s) to send to the server
             Packet requestPacket = new Packet.Builder()
                     .setType(0)
                     .setSequenceNumber(1L)
-                    .setPortNumber(serverAddr.getPort())
-                    .setPeerAddress(serverAddr.getAddress())
+                    .setPortNumber(serverAddress.getPort())
+                    .setPeerAddress(serverAddress.getAddress())
                     .setPayload(request.getBytes())
                     .create();
 
@@ -169,6 +170,17 @@ public class Client extends Request{
             System.out.println(e);
         }
         return payload;
+    }
+
+    // 3-way handshake
+    /*
+        1. Send SYN (seq = x)
+        2. Receive SYN_ACK (seq = x+1)
+        3. Send ACK (seq=y+1)
+     */
+    private void threeWayHandshake(DatagramSocket clientSocket, SocketAddress routerAddress,
+                                   InetSocketAddress serverAddress){
+
     }
 
     //From the packets receive the response
