@@ -186,7 +186,7 @@ public class Server {
                     }else{
                         requestStatus[0] = statusCodes(403, "HTTP/1.0");
                     }
-                }else if(filePath.exists() && !filePath.isDirectory() && !filePath.canWrite()){
+                }else if(filePath.exists() && !filePath.isDirectory() && filePath.canWrite()){
                     writeFile(filePath, body);
                     requestStatus[0] = statusCodes(200, "HTTP/1.0");
                 }else{
